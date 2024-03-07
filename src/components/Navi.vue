@@ -23,7 +23,7 @@
     justify-content: space-around;
     align-items: center;
    
-    background-color: black;
+    background-color: #fad96d;
     box-shadow: 0 2px 4px rgba(241, 241, 241, 0.1);
     text-align: center;
     
