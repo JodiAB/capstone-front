@@ -40,6 +40,24 @@ export default createStore({
       }
       
     },
+    async getUsers(context) {
+      try{
+        const resp = await fetch(`${baseUrl}users`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then((response) => response.json())
+        
+        console.log(resp);
+        context.commit("setUsers", resp)
+      } catch(e) {
+        console.error("Error: ", e)
+      }
+      
+    },
+
+
 
     async editProduct(context, updatedProduct) {
       try {

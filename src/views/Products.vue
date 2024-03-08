@@ -8,15 +8,18 @@
         <input type="text" v-model="searchQuery" placeholder="Search by name">
         <button @click="search">Search</button>
       </div>
+      <div v-for="product in filteredProducts" :key="product.id" >
       <div :class="{ 'grid-container': isGridView, 'column-container': !isGridView }">
-        <div v-for="product in filteredProducts" :key="product.id" class="card">
+        <div v-for="product in products" :key="product.id" class="card">
           <img :src="product.image" alt="Product Image">
-          <h2>{{ product.name }}</h2>
-          <p>{{ product.description }}</p>
+          <h2>{{ product.productName }}</h2>
+          <p>{{ product.productDes }}</p>
+          <p>R {{ product.productPrice }}</p>
           <div class="buttons">
             <button @click="openModal(product)">View Details</button>
             <button @click="buyNow(product)">Buy Now</button>
           </div>
+        </div>
         </div>
       </div>
   
@@ -25,9 +28,9 @@
         <div class="modal-content">
           <span class="close" @click="closeModal">&times;</span>
           <img :src="selectedProduct.image" alt="Product Image">
-          <h2>{{ selectedProduct.name }}</h2>
-          <p>{{ selectedProduct.description }}</p>
-          <p>Price: {{ selectedProduct.price }}</p>
+          <h2>{{ selectedProduct.productName }}</h2>
+          <p>{{ selectedProduct.productDes }}</p>
+          <p>Price: {{ selectedProduct.productPrice }}</p>
           <button @click="buyNow(selectedProduct)">Buy Now</button>
         </div>
       </div>
@@ -53,7 +56,10 @@
         return this.products.filter(product =>
           product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
         );
-      }
+      },
+      products() {
+      return this.$store.state.product;
+    },
     },
     methods: {
       toggleView(view) {
@@ -70,7 +76,14 @@
       },
       buyNow(product) {
         alert(`Buying ${product.name}`);
-      }
+      },
+      async fetchData() {
+      await this.$store.dispatch("getProducts");
+    },
+      
+    },
+    mounted(){
+        this.fetchData();
     }
   };
   </script>
