@@ -47,15 +47,16 @@
       </thead>
       <tbody v-for="user in users" :key="user.userID">
         <tr>
-          <td>{{ people.userID }}</td>
-          <td>{{ people.userName }}</td>
-          <td>{{ people.userName }}</td>>
-          <td>{{ people.emailAdd }}</td>
-          <td>{{ people.gender }}</td>
-          <td>{{ people.userRole }}</td>
+          <td>{{ user.userID }}</td>
+          <td>{{ user.userName }}</td>
+          <td>{{ user.userName }}</td>>
+          <td>{{ user.emailAdd }}</td>
+          <td>{{ user.gender }}</td>
+          <td>{{ user.userRole }}</td>
 
           <td>
-            <button @click="openModal('edit', product)">Edit</button>
+            <button @click="product && openModal('edit', product.id)">Edit</button>
+
             <button @click="openModal('delete', product)">Delete</button>
           </td>
         </tr>
@@ -83,25 +84,27 @@
       </div>
     </div>
 
-    <!-- Edit Product Modal -->
-    <div v-if="editModal" class="modal">
-      <div class="modal-content">
-        <span class="close" @click="closeModal('editModal')">&times;</span>
-        <h2>Edit Product</h2>
-        <!-- Edit product form -->
-        <form @submit.prevent="editProduct">
-          <label for="editProductName">Name:</label>
-          <input type="text" id="editProductName" v-model="editedProduct.name" required>
-          <label for="editProductDescription">Description:</label>
-          <textarea id="editProductDescription" v-model="editedProduct.description" required></textarea>
-          <label for="editProductPrice">Price:</label>
-          <input type="number" id="editProductPrice" v-model="editedProduct.price" required>
-          <label for="editProductImage">Image:</label>
-          <input type="file" id="editProductImage" @change="onEditImageChange" accept="image/*" required>
-          <button type="submit">Save Changes</button>
-        </form>
-      </div>
-    </div>
+<!-- Edit Product Modal -->
+<div v-if="editModal" class="modal">
+  <div class="modal-content">
+    <span class="close" @click="closeModal('editModal')">&times;</span>
+    <h2>Edit Product</h2>
+    <form @submit.prevent="editProduct"> <!-- Add @submit.prevent directive here -->
+      <label for="editProductName">Name:</label>
+      <input type="text" id="editProductName" v-model="editedProduct.name" required>
+      <label for="editProductDescription">Description:</label>
+      <textarea id="editProductDescription" v-model="editedProduct.description" required></textarea>
+      <label for="editProductPrice">Price:</label>
+      <input type="number" id="editProductPrice" v-model="editedProduct.price" required>
+      <label for="editProductImage">Image:</label>
+      <input type="file" id="editProductImage" @change="onEditImageChange" accept="image/*" required>
+      <button type="submit">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+  
+  
 
     <!-- Delete Product Modal -->
     <div v-if="deleteModal" class="modal">
@@ -123,7 +126,7 @@ export default {
       addModal: false,
       editModal: false,
       deleteModal: false,
-      editedProduct: {},
+      editedProduct: {}, // Define editedProduct only once
       selectedProduct: {},
       newProduct: {
         name: '',
@@ -131,68 +134,91 @@ export default {
         price: '',
         image: null,
       },
+      error: null, // Add an error property to handle errors
     };
   },
+
   computed: {
-  products() {
-    return this.$store.state.product;
+    products() {
+      return this.$store.state.product;
+    },
+    users() {
+      return this.$store.state.users;
+    },
   },
-  users() {
-    return this.$store.state.users;
-  },
-},
+
   mounted() {
-    // this.$store.dispatch("getProducts");
     this.fetchData();
     this.fetchUsers();
   },
+
   methods: {
-    openModal(type, data) {
+    openModal(type, id) {
+      console.log("Opening modal:", type, id);
       if (type === 'add') {
         this.addModal = true;
       } else if (type === 'edit') {
-        this.editedProduct = { ...data }; // Create a copy of the product to edit
-        this.editModal = true;
+        const product = this.products.find(product => product.id === id);
+        if (product) {
+          this.editedProduct = product;
+          this.editModal = true;
+        } else {
+          console.error('Product not found for ID:', id);
+        }
       } else if (type === 'delete') {
-        this.selectedProduct = { ...data }; // Create a copy of the product to delete
+        this.selectedProduct = this.products.find(product => product.id === id);
         this.deleteModal = true;
       }
       document.body.classList.add('modal-open');
     },
+
     closeModal(modalName) {
       this[modalName] = false;
       document.body.classList.remove('modal-open');
     },
-    // Implement your methods for adding, editing, and deleting products here
-    addProduct() {
-      // Implement adding product logic
-    },
+
     editProduct() {
-      // Implement editing product logic
-    },
-    deleteProduct() {
-      // Implement deleting product logic
-    },
-    onImageChange(event) {
-      // Handle image change for adding product
-    },
-    onEditImageChange(event) {
-      // Handle image change for editing product
-    },
+  if (this.editedProduct.id) {
+    this.$store.dispatch("editProduct", this.editedProduct)
+      .then(updatedProduct => {
+       
+        console.log("Product data updated successfully", updatedProduct);
+        this.closeModal('editModal'); 
+      })
+      .catch(error => {
+
+        console.error("Error updating product data:", error);
+    
+      });
+  } else {
+    console.error("Invalid product ID:", this.editedProduct.id);
+  }
+},
 
 
+    // Other methods...
 
     async fetchData() {
-      await this.$store.dispatch("getProducts");
+      try {
+        await this.$store.dispatch("getProducts");
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        this.error = error.message; // Set the error message
+      }
     },
-    async fetchUsers(){
-      await this.$store.dispatch("getUsers");
-    }
 
-   
+    async fetchUsers() {
+      try {
+        await this.$store.dispatch("getUsers");
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        this.error = error.message; // Set the error message
+      }
+    },
   },
 };
 </script>
+
 
 <style>
 /* Table Styling */
@@ -244,7 +270,7 @@ button {
 .modal {
   display: none;
   position: fixed;
-  z-index: 1;
+  z-index: 1000; 
   left: 0;
   top: 0;
   width: 100%;
@@ -252,7 +278,6 @@ button {
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.4);
 }
-
 .modal-content {
   background-color: #fefefe;
   margin: 10% auto;
