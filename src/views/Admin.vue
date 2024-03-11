@@ -69,7 +69,7 @@
         <span class="close" @click="closeModal('addModal')">&times;</span>
         <h2>Add Product</h2>
         <!-- Add product form -->
-        <form @submit.prevent="addProduct">
+        <form class="addPro" @submit.prevent="addProduct">
           <label for="productName">Name:</label>
           <input type="text" id="productName" v-model="newProduct.name" required>
           <label for="productDescription">Description:</label>
@@ -134,16 +134,17 @@ export default {
     };
   },
   computed: {
-    products() {
-      return this.$store.state.product;
-    },
-    users(){
-      return this.$store.state.users;
-    }
+  products() {
+    return this.$store.state.product;
   },
+  users() {
+    return this.$store.state.users;
+  },
+},
   mounted() {
     // this.$store.dispatch("getProducts");
     this.fetchData();
+    this.fetchUsers();
   },
   methods: {
     openModal(type, data) {
@@ -184,6 +185,9 @@ export default {
     async fetchData() {
       await this.$store.dispatch("getProducts");
     },
+    async fetchUsers(){
+      await this.$store.dispatch("getUsers");
+    }
 
    
   },
@@ -270,6 +274,12 @@ button {
   color: black;
   text-decoration: none;
   cursor: pointer;
+}
+
+.addPro{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
 }
 
 /* Show modal */

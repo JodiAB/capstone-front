@@ -5,7 +5,7 @@ const baseUrl = "https://capstone-back-m8cq.onrender.com/";
 export default createStore({
   state: {
     product: [],
-    users: null,
+    users: [],
   },
   getters: {
     // product: state => state.product
@@ -41,22 +41,21 @@ export default createStore({
       
     },
     async getUsers(context) {
-      try{
+      try {
         const resp = await fetch(`${baseUrl}users`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-        }).then((response) => response.json())
+        }).then((response) => response.json());
         
         console.log(resp);
-        context.commit("setUsers", resp)
-      } catch(e) {
-        console.error("Error: ", e)
+        context.commit("setUsers", resp);
+      } catch (e) {
+        console.error("Error: ", e);
       }
-      
     },
-
+    
 
 
     async editProduct(context, updatedProduct) {
