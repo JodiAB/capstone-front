@@ -2,32 +2,36 @@
   <div>
     <!-- <Spinner v-if="loading"/>
       <div v-else> -->
-        <h1>Product list</h1>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Category</th>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Price</th>
-              <th>Image</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="product in products" :key="product.id">
-              <td>{{ product.id }}</td>
-              <td>{{ product.productQuan }}</td>
-              <td>{{ product.productName }}</td>
-              <td>{{ product.productDes }}</td>
-              <td>R {{ product.productPrice }}</td>
-              <td>
-                <img :src="product.jewelImage" alt="Product Image" style="width: 100px; height: auto" />
-              </td>
+    <h1>Product list</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Category</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Image</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="product in products" :key="product.id">
+          <td>{{ product.id }}</td>
+          <td>{{ product.productQuan }}</td>
+          <td>{{ product.productName }}</td>
+          <td>{{ product.productDes }}</td>
+          <td>R {{ product.productPrice }}</td>
+          <td>
+            <img
+              :src="product.jewelImage"
+              alt="Product Image"
+              style="width: 100px; height: auto"
+            />
+          </td>
           <td>
             <button @click="openModal('edit', product.id)">Edit</button>
-            <button @click="openModal('delete', product.id)">Delete</button>
+            <button @click="deleteProduct(product.id)">Delete</button>
           </td>
         </tr>
       </tbody>
@@ -49,13 +53,16 @@
         <tr>
           <td>{{ user.userID }}</td>
           <td>{{ user.userName }}</td>
-          <td>{{ user.userName }}</td>>
+          <td>{{ user.userName }}</td>
+          >
           <td>{{ user.emailAdd }}</td>
           <td>{{ user.gender }}</td>
           <td>{{ user.userRole }}</td>
 
           <td>
-            <button @click="product && openModal('edit', product.id)">Edit</button>
+            <button @click="product && openModal('edit', product.id)">
+              Edit
+            </button>
 
             <button @click="openModal('delete', product)">Delete</button>
           </td>
@@ -70,49 +77,99 @@
         <span class="close" @click="closeModal('addModal')">&times;</span>
         <h2>Add Product</h2>
         <!-- Add product form -->
-        <form class="addPro" @submit.prevent="addProduct">
-          <label for="productName">Name:</label>
-          <input type="text" id="productName" v-model="newProduct.name" required>
-          <label for="productDescription">Description:</label>
-          <textarea id="productDescription" v-model="newProduct.description" required></textarea>
-          <label for="productPrice">Price:</label>
-          <input type="number" id="productPrice" v-model="newProduct.price" required>
-          <label for="productImage">Image:</label>
-          <input type="file" id="productImage" @change="onImageChange" accept="image/*" required>
-          <button type="submit">Add Product</button>
-        </form>
+
+        <label for="productName">Name:</label>
+        <input
+          type="text"
+          id="productName"
+          v-model="newProduct.productName"
+          required
+        />
+        <label for="productDescription">Description:</label>
+        <textarea
+          id="productDescription"
+          v-model="newProduct.productDes"
+          required
+        ></textarea>
+        <label for="productPrice">Price:</label>
+        <input
+          type="number"
+          id="productPrice"
+          v-model="newProduct.productPrice"
+          required
+        />
+        <label for="productPrice">Quantity:</label>
+        <input
+          type="number"
+          id="productQuan"
+          v-model="newProduct.productQuan"
+          required
+        />
+        <label for="productImage">Image:</label>
+        <input
+          id="productIMG"
+          v-model="newProduct.productIMG"
+          required
+          />
+          <!-- @change="onImageChange"
+          accept="image/*" -->
+        <button type="submit" @click="addProduct">Add Product</button>
       </div>
     </div>
 
-<!-- Edit Product Modal -->
-<div v-if="editModal" class="modal">
-  <div class="modal-content">
-    <span class="close" @click="closeModal('editModal')">&times;</span>
-    <h2>Edit Product</h2>
-    <form @submit.prevent="editProduct"> <!-- Add @submit.prevent directive here -->
-      <label for="editProductName">Name:</label>
-      <input type="text" id="editProductName" v-model="editedProduct.name" required>
-      <label for="editProductDescription">Description:</label>
-      <textarea id="editProductDescription" v-model="editedProduct.description" required></textarea>
-      <label for="editProductPrice">Price:</label>
-      <input type="number" id="editProductPrice" v-model="editedProduct.price" required>
-      <label for="editProductImage">Image:</label>
-      <input type="file" id="editProductImage" @change="onEditImageChange" accept="image/*" required>
-      <button type="submit">Save Changes</button>
-    </form>
-  </div>
-</div>
-
-  
-  
+    <!-- Edit Product Modal -->
+    <div v-if="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeModal('editModal')">&times;</span>
+        <h2>Edit Product</h2>
+        <form @submit.prevent="editProduct">
+          <!-- Add @submit.prevent directive here -->
+          <label for="editProductName">Name:</label>
+          <input
+            type="text"
+            id="editProductName"
+            v-model="editedProduct.name"
+            required
+          />
+          <label for="editProductDescription">Description:</label>
+          <textarea
+            id="editProductDescription"
+            v-model="editedProduct.description"
+            required
+          ></textarea>
+          <label for="editProductPrice">Price:</label>
+          <input
+            type="number"
+            id="editProductPrice"
+            v-model="editedProduct.price"
+            required
+          />
+          <label for="productPrice">Quantity:</label>
+          <input
+            type="number"
+            id="productQuan"
+            v-model="newProduct.productQuan"
+            required
+          />
+          <label for="productImage">Image:</label>
+          <input
+            id="productIMG"
+            v-model="newProduct.productIMG"
+            required
+            />
+          <button type="submit">Save Changes</button>
+        </form>
+      </div>
+    </div>
 
     <!-- Delete Product Modal -->
     <div v-if="deleteModal" class="modal">
       <div class="modal-content">
         <h2>Delete Product</h2>
-        <p>Are you sure you want to delete ?</p>
-        <!-- Delete confirmation buttons -->
-        <button @click="deleteJewel(selectedProduct.id)">Confirm</button>
+        <p>Are you sure you want to delete?</p>
+        <button @click="deleteProduct(deleteProduct(product.id))">
+          Confirm
+        </button>
         <button @click="closeModal('deleteModal')">Cancel</button>
       </div>
     </div>
@@ -120,19 +177,23 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
+
 export default {
   data() {
     return {
       addModal: false,
       editModal: false,
       deleteModal: false,
-      editedProduct: {}, // Define editedProduct only once
+      editedProduct: {
+      }, // Define editedProduct only once
       selectedProduct: {},
       newProduct: {
-        name: '',
-        description: '',
-        price: '',
-        image: null,
+        productName: "",
+        productDes: "",
+        productPrice: "",
+        productQuan: "",
+        productIMG: null,
       },
       error: null, // Add an error property to handle errors
     };
@@ -145,6 +206,18 @@ export default {
     users() {
       return this.$store.state.users;
     },
+    addProduct() {
+      this.$store
+        .dispatch("addProduct", this.newProduct)
+        .then(() => {
+          console.log("Product added successfully");
+          console.log(this.newProduct);
+          this.closeModal("addModal");
+        })
+        .catch((error) => {
+          console.error("Error adding product:", error);
+        });
+    },
   },
 
   mounted() {
@@ -155,40 +228,55 @@ export default {
   methods: {
     openModal(type, id) {
       console.log("Opening modal:", type, id);
-      if (type === 'add') {
+      if (type === "add") {
         this.addModal = true;
-      } else if (type === 'edit') {
-        const product = this.products.find(product => product.id === id);
+      } else if (type === "edit") {
+        const product = this.products.find((product) => product.id === id);
         if (product) {
           this.editedProduct = product;
           this.editModal = true;
         } else {
-          console.error('Product not found for ID:', id);
+          console.error("Product not found for ID:", id);
         }
-      } else if (type === 'delete') {
-        this.selectedProduct = this.products.find(product => product.id === id);
+      } else if (type === "delete") {
+        this.selectedProduct = this.products.find(
+          (product) => product.id === id
+        );
         this.deleteModal = true;
       }
-      document.body.classList.add('modal-open');
+      document.body.classList.add("modal-open");
     },
-
+    check() {
+      console.log(this.newProduct.name);
+    },
     closeModal(modalName) {
       this[modalName] = false;
-      document.body.classList.remove('modal-open');
+      document.body.classList.remove("modal-open");
     },
 
     editProduct() {
   if (this.editedProduct.id) {
-    this.$store.dispatch("editProduct", this.editedProduct)
-      .then(updatedProduct => {
-       
+    this.$store
+      .dispatch("editProduct", this.editedProduct)
+      .then((updatedProduct) => {
         console.log("Product data updated successfully", updatedProduct);
-        this.closeModal('editModal'); 
+        this.closeModal("editModal");
       })
-      .catch(error => {
-
+      .catch((error) => {
         console.error("Error updating product data:", error);
-    
+        // Log detailed error information
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          console.error("Response data:", error.response.data);
+          console.error("Response status:", error.response.status);
+          console.error("Response headers:", error.response.headers);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error("No response received:", error.request);
+        } else {
+          // Something else happened while setting up the request
+          console.error("Error setting up the request:", error.message);
+        }
       });
   } else {
     console.error("Invalid product ID:", this.editedProduct.id);
@@ -196,7 +284,17 @@ export default {
 },
 
 
-    // Other methods...
+    deleteProduct(id) {
+      this.$store
+        .dispatch("deleteProduct", id)
+        .then(() => {
+          console.log("Product deleted successfully");
+          this.closeModal("deleteModal");
+        })
+        .catch((error) => {
+          console.error("Error deleting product:", error);
+        });
+    },
 
     async fetchData() {
       try {
@@ -218,7 +316,6 @@ export default {
   },
 };
 </script>
-
 
 <style>
 /* Table Styling */
@@ -270,7 +367,7 @@ button {
 .modal {
   display: none;
   position: fixed;
-  z-index: 1000; 
+  z-index: 1000;
   left: 0;
   top: 0;
   width: 100%;
@@ -301,7 +398,7 @@ button {
   cursor: pointer;
 }
 
-.addPro{
+.addPro {
   display: flex;
   justify-content: center;
   flex-direction: column;
