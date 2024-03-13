@@ -1,10 +1,12 @@
 <template scoped>
   <div class="body">
+    <div class="clouds">
     <h1 class="header" >Spa Store </h1>
   <h3 class="sub-heading">Where your peace is a priority</h3>
   <div class="clik">
   <button class="but">View More</button>
   </div>
+    </div>
 </div>
 </template>
 <script>
@@ -101,4 +103,14 @@ export default {
   left: 80%;
 }
   
+.clouds{
+  background:transparent url(http://www.script-tutorials.com/demos/360/images/clouds3.png) repeat top center;
+  z-index:30;
+
+-moz-animation:move-clouds-back 200s linear infinite;
+-ms-animation:move-clouds-back 200s linear infinite;
+-o-animation:move-clouds-back 200s linear infinite;
+-webkit-animation:move-clouds-back 200s linear infinite;
+animation:move-clouds-back 200s linear infinite;
+}
 </style>

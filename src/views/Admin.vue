@@ -53,11 +53,11 @@
         <tr>
           <td>{{ user.userID }}</td>
           <td>{{ user.userName }}</td>
-          <td>{{ user.userName }}</td>
-          >
-          <td>{{ user.emailAdd }}</td>
-          <td>{{ user.gender }}</td>
-          <td>{{ user.userRole }}</td>
+          <td>{{ user.userLast }}</td>
+          <td>{{ user.userEmail }}</td>
+          <td>{{ user.userPass }}</td>
+          
+  
 
           <td>
             <button @click="product && openModal('edit', product.id)">
@@ -69,7 +69,7 @@
         </tr>
       </tbody>
     </table>
-    <button @click="addModal()">Add Product</button>
+   
 
     <!-- Add Product Modal -->
     <div v-if="addModal" class="modal">
@@ -128,33 +128,33 @@
           <input
             type="text"
             id="editProductName"
-            v-model="editedProduct.name"
+            v-model="editedProduct.productName"
             required
           />
           <label for="editProductDescription">Description:</label>
           <textarea
             id="editProductDescription"
-            v-model="editedProduct.description"
+            v-model="editedProduct.productDes"
             required
           ></textarea>
           <label for="editProductPrice">Price:</label>
           <input
             type="number"
             id="editProductPrice"
-            v-model="editedProduct.price"
+            v-model="editedProduct.productPrice"
             required
           />
-          <label for="productPrice">Quantity:</label>
+          <label for="editProductQuan">Quantity:</label>
           <input
             type="number"
-            id="productQuan"
-            v-model="newProduct.productQuan"
+            id="editProductQuan"
+            v-model="editedProduct.productQuan"
             required
           />
-          <label for="productImage">Image:</label>
+          <label for="editProductImage">Image:</label>
           <input
-            id="productIMG"
-            v-model="newProduct.productIMG"
+            id="editProductIMG"
+            v-model="editedProduct.productIMG"
             required
             />
           <button type="submit">Save Changes</button>
@@ -185,8 +185,7 @@ export default {
       addModal: false,
       editModal: false,
       deleteModal: false,
-      editedProduct: {
-      }, // Define editedProduct only once
+      editedProduct: {},
       selectedProduct: {},
       newProduct: {
         productName: "",
@@ -195,7 +194,7 @@ export default {
         productQuan: "",
         productIMG: null,
       },
-      error: null, // Add an error property to handle errors
+      error: null, 
     };
   },
 
@@ -256,25 +255,24 @@ export default {
 
     editProduct() {
   if (this.editedProduct.id) {
-    this.$store
-      .dispatch("editProduct", this.editedProduct)
+    this.$store.dispatch("editProduct", this.editedProduct)
       .then((updatedProduct) => {
         console.log("Product data updated successfully", updatedProduct);
         this.closeModal("editModal");
       })
       .catch((error) => {
         console.error("Error updating product data:", error);
-        // Log detailed error information
+     
         if (error.response) {
-          // The request was made and the server responded with a status code
+      
           console.error("Response data:", error.response.data);
           console.error("Response status:", error.response.status);
           console.error("Response headers:", error.response.headers);
         } else if (error.request) {
-          // The request was made but no response was received
+   
           console.error("No response received:", error.request);
         } else {
-          // Something else happened while setting up the request
+       
           console.error("Error setting up the request:", error.message);
         }
       });
