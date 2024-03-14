@@ -1,5 +1,7 @@
 import { createStore } from "vuex";
 import axios from 'axios';
+// import Swal from 'sweetalert2';
+
 const baseUrl = "https://capstone-back-m8cq.onrender.com/";
 
 export default createStore({
@@ -12,6 +14,8 @@ export default createStore({
     cart: []
   },
   mutations: {
+
+   
     setProduct(state, product) {
       state.product = product;
     },
@@ -37,28 +41,26 @@ export default createStore({
       state.loginError = error;
     },
     addToCart(state, product) {
-      const EPro = state.cart.find(item => item.id === product.id);
-      if (EPro) {
-        EPro.quantity++;
+      const existingProduct = state.cart.find(item => item.id === product.id);
+      if (existingProduct) {
+        existingProduct.quantity++;
       } else {
         state.cart.push({ ...product, quantity: 1 });
-      },
-
-      removeFromCart(state, productId){
-        state.cart = state.cart.filter(item => item.id !== productId);
-      },
-
-      updateQuantity(state, { productId, quantity }) {
-        const product = state.cart.find(item => item.id === productId);
-        if (product) {
-          product.quantity = quantity;
-        }
-      },
-      clearCart(state) {
-        state.cart = [];
       }
-  }
-},
+    },
+    removeFromCart(state, productId) {
+      state.cart = state.cart.filter(item => item.id !== productId);
+    },
+    updateQuantity(state, { productId, quantity }) {
+      const product = state.cart.find(item => item.id === productId);
+      if (product) {
+        product.quantity = quantity;
+      }
+    },
+    clearCart(state) {
+      state.cart = [];
+    }
+  },
   actions: {
     async getProducts(context) {
       try {
@@ -107,13 +109,13 @@ export default createStore({
     async addProduct({ commit }, newProduct) {
       try {
         const response = await axios.post(`${baseUrl}product`, newProduct);
-        const product = response.data; // Assuming response contains the created product
-        commit('addProduct', product); // Commit mutation to update state
+        const product = response.data;
+        commit('addProduct', product); 
         console.log('Product added successfully:', product);
-        return product; // Optionally return the created product
+        return product;
       } catch (error) {
         console.error('Error adding product:', error);
-        throw error; // Propagate the error to the calling code
+        throw error; 
       }
     windows.reload();
 
@@ -161,6 +163,12 @@ export default createStore({
             context.commit('setToken', token);
             context.commit('setLoginError', '');
             localStorage.setItem('token', token);
+            await Swal.fire({
+              title: "Login successful",
+              text: msg,
+              icon: "success",
+
+            })
           } else {
             context.commit('setToken', null);
             context.commit('setLoginError', msg);
@@ -178,7 +186,7 @@ export default createStore({
     },
     async fetchProduct(context, productId) {
       try {
-        const response = await axios.get(`${baseUrl}products/${productId}`);
+        const response = await axios.get(`${baseUrl}product/${productId}`);
         const product = response.data;
         context.commit('addToCart', product);
       } catch (error) {

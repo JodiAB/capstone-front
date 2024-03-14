@@ -7,6 +7,7 @@
         <router-link to="/register">Registration</router-link> |
         <router-link to="/login">Login</router-link> |
         <router-link to="/contact">Contact</router-link> |
+        <router-link to="/basket">Basket</router-link> |
         <router-link to="/admin">Admin</router-link> |
       </nav>
     </div>
