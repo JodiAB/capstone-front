@@ -37,7 +37,7 @@ export default {
     transform: translate(-50%, -50%);
     text-align: center;
     z-index: 10;
-    font-size: 165px;
+    font-size: 153px;
 
   }
 

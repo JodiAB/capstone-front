@@ -9,6 +9,7 @@
         <button type="submit">Login</button>
       </form>
       <p v-if="loginError" style="color: red;">{{ loginError }}</p>
+      <p v-if="SuccessMsg" style="color: green;">{{ SuccessMsg }}</p>
     </div>
   </template>
   
@@ -24,6 +25,9 @@
       loginError() {
         return this.$store.state.loginError;
       },
+      SuccessMsg() {
+      return this.$store.state.SuccessMsg; 
+    },
     },
     methods: {
       loginUser() {

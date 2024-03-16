@@ -24,14 +24,15 @@
           <td>R {{ product.productPrice }}</td>
           <td>
             <img
-              :src="product.jewelImage"
+              :src="product.prodIMG"
               alt="Product Image"
               style="width: 100px; height: auto"
             />
           </td>
           <td>
             <button @click="openModal('edit', product.id)">Edit</button>
-            <button @click="deleteProduct(product.id)">Delete</button>
+            <button @click="openModal('delete', product.id, product)">Delete</button>
+
           </td>
         </tr>
       </tbody>
@@ -60,11 +61,11 @@
   
 
           <td>
-            <button @click="product && openModal('edit', product.id)">
-              Edit
-            </button>
+            <button @click="openModal('edit', user.userID, user)">Edit</button>
 
-            <button @click="openModal('delete', product)">Delete</button>
+            <button @click="openModal('delete', user.userID, user)">Delete</button>
+
+
           </td>
         </tr>
       </tbody>
@@ -162,14 +163,58 @@
       </div>
     </div>
 
+
+      <!-- edit modal -->
+    <div v-if="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeModal('editModal')">&times;</span>
+        <h2>Edit User</h2>
+        <form @submit.prevent="editUser">
+          <label for="editUserName">Name:</label>
+          <input
+            type="text"
+            id="editUserName"
+            v-model="editedUser.userName"
+            required
+          />
+          <label for="editUserLastName">Last Name:</label>
+          <input
+            type="text"
+            id="editUserLastName"
+            v-model="editedUser.userLast"
+            required
+          />
+          <label for="editUserEmail">Email:</label>
+          <input
+            type="email"
+            id="editUserEmail"
+            v-model="editedUser.userEmail"
+            required
+          />
+          <label for="editUserPassword">New Password:</label>
+          <input
+            type="password"
+            id="editUserPassword"
+            v-model="editedUser.newPassword"
+          />
+          <!-- Hidden field for hashed password -->
+          <input
+            type="hidden"
+            id="editUserHashedPassword"
+            v-model="editedUser.hashedPassword"
+          />
+          <button type="submit">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  
+
     <!-- Delete Product Modal -->
     <div v-if="deleteModal" class="modal">
       <div class="modal-content">
         <h2>Delete Product</h2>
         <p>Are you sure you want to delete?</p>
-        <button @click="deleteProduct(deleteProduct(product.id))">
-          Confirm
-        </button>
+        <button @click="deleteItem">Confirm</button>
         <button @click="closeModal('deleteModal')">Cancel</button>
       </div>
     </div>
@@ -177,7 +222,8 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+
+
 
 export default {
   data() {
@@ -186,6 +232,7 @@ export default {
       editModal: false,
       deleteModal: false,
       editedProduct: {},
+      deleteType: '',
       selectedProduct: {},
       newProduct: {
         productName: "",
@@ -225,26 +272,82 @@ export default {
   },
 
   methods: {
-    openModal(type, id) {
-      console.log("Opening modal:", type, id);
+    openModal(type, id, item) {
+  console.log("Opening modal:", type, id, item);
+  if (type === "add") {
+    this.addModal = true;
+  } else if (type === "edit") {
+    const product = this.products.find((product) => product.id === id);
+    if (product) {
+      this.editedProduct = product;
+      this.editModal = true;
+    } else {
+      console.error("Product not found for ID:", id);
+    }
+  } else if (type === "delete") {
+    if (item && item.userID) {
+  this.selectedItem = item; // For users
+  this.deleteType = 'user';
+} else if (item && item.id) {
+  this.selectedItem = item; // For products
+  this.deleteType = 'product';
+    } else {
+      console.error("Invalid item for delete:", item);
+      return; // Exit the function if item is invalid
+    }
+    this.deleteModal = true;
+  }
+  document.body.classList.add("modal-open");
+},
+openModal(type, id, item) {
+      console.log("Opening modal:", type, id, item);
       if (type === "add") {
         this.addModal = true;
       } else if (type === "edit") {
-        const product = this.products.find((product) => product.id === id);
-        if (product) {
-          this.editedProduct = product;
+        const user = this.users.find((user) => user.userID === id);
+        if (user) {
+          this.editedUser = { ...user }; // Create a copy of the user object
           this.editModal = true;
         } else {
-          console.error("Product not found for ID:", id);
+          console.error("User not found for ID:", id);
         }
       } else if (type === "delete") {
-        this.selectedProduct = this.products.find(
-          (product) => product.id === id
-        );
-        this.deleteModal = true;
+        // Handle delete logic
       }
       document.body.classList.add("modal-open");
     },
+    
+    editUser() {
+      if (this.editedUser.newPassword) {
+        this.editedUser.hashedPassword = this.hashPassword(this.editedUser.newPassword);
+      }
+      
+      this.$store.dispatch("editUser", this.editedUser)
+        .then(() => {
+          console.log("User data updated successfully");
+          this.closeModal("editModal");
+        })
+        .catch((error) => {
+          console.error("Error updating user data:", error);
+        });
+    },
+
+    closeModal(modalName) {
+      this[modalName] = false;
+      document.body.classList.remove("modal-open");
+    },
+    async hashPassword(password) {
+      try {
+        const saltRounds = 10; 
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        return hashedPassword;
+      } catch (error) {
+        console.error("Error hashing password:", error);
+        return null;
+      }
+    },
+
+
     check() {
       console.log(this.newProduct.name);
     },
@@ -282,9 +385,30 @@ export default {
 },
 
 
-    deleteProduct(id) {
+  
+deleteItem() {
+  if (this.deleteType === 'product') {
+    this.deleteProduct(this.selectedItem.id);
+  } else if (this.deleteType === 'user') {
+    this.deletePerson(this.selectedItem.userID);
+  }
+},
+
+
+deleteProduct(id) {
+  this.$store
+    .dispatch("deleteProduct", id)
+    .then(() => {
+      console.log("Product deleted successfully");
+      this.closeModal("deleteModal");
+    })
+    .catch((error) => {
+      console.error("Error deleting product:", error);
+    });
+},
+deletePerson(userID) {
       this.$store
-        .dispatch("deleteProduct", id)
+        .dispatch("deletePerson", userID)
         .then(() => {
           console.log("Product deleted successfully");
           this.closeModal("deleteModal");
