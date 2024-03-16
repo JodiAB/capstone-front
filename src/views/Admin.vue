@@ -208,6 +208,15 @@
       </div>
     </div>
   
+<!-- Delete User Modal -->
+<div v-if="deleteModal" class="modal">
+  <div class="modal-content">
+    <h2>Delete User</h2>
+    <p>Are you sure you want to delete this user?</p>
+    <button @click="deleteItem">Confirm</button>
+    <button @click="closeModal('deleteModal')">Cancel</button>
+  </div>
+</div>
 
     <!-- Delete Product Modal -->
     <div v-if="deleteModal" class="modal">
@@ -286,16 +295,13 @@ export default {
     }
   } else if (type === "delete") {
     if (item && item.userID) {
-  this.selectedItem = item; // For users
-  this.deleteType = 'user';
-} else if (item && item.id) {
-  this.selectedItem = item; // For products
-  this.deleteType = 'product';
+      this.selectedItem = item; 
+      this.deleteType = 'user';
+      this.deleteModal = true;
     } else {
       console.error("Invalid item for delete:", item);
-      return; // Exit the function if item is invalid
+      return; 
     }
-    this.deleteModal = true;
   }
   document.body.classList.add("modal-open");
 },
@@ -306,17 +312,23 @@ openModal(type, id, item) {
       } else if (type === "edit") {
         const user = this.users.find((user) => user.userID === id);
         if (user) {
-          this.editedUser = { ...user }; // Create a copy of the user object
+          this.editedUser = { ...user }; 
           this.editModal = true;
         } else {
           console.error("User not found for ID:", id);
         }
       } else if (type === "delete") {
-        // Handle delete logic
-      }
-      document.body.classList.add("modal-open");
-    },
-    
+    if (item && item.userID) {
+      this.selectedItem = item; 
+      this.deleteType = 'user';
+      this.deleteModal = true; // Make sure deleteModal is set to true
+    } else {
+      console.error("Invalid item for delete:", item);
+      return; 
+    }
+  }
+  document.body.classList.add("modal-open");
+},
     editUser() {
       if (this.editedUser.newPassword) {
         this.editedUser.hashedPassword = this.hashPassword(this.editedUser.newPassword);
@@ -385,12 +397,25 @@ openModal(type, id, item) {
 },
 
 
-  
 deleteItem() {
-  if (this.deleteType === 'product') {
-    this.deleteProduct(this.selectedItem.id);
-  } else if (this.deleteType === 'user') {
-    this.deletePerson(this.selectedItem.userID);
+  if (this.deleteType === 'user') {
+    this.$store.dispatch("deletePerson", this.selectedItem.userID)
+      .then(() => {
+        console.log("User deleted successfully");
+        this.closeModal("deleteModal");
+      })
+      .catch((error) => {
+        console.error("Error deleting user:", error);
+      });
+  } else if (this.deleteType === 'product') {
+    this.$store.dispatch("deleteProduct", this.selectedItem.id)
+      .then(() => {
+        console.log("Product deleted successfully");
+        this.closeModal("deleteModal");
+      })
+      .catch((error) => {
+        console.error("Error deleting product:", error);
+      });
   }
 },
 

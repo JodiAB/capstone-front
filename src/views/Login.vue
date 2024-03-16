@@ -6,7 +6,7 @@
         <input type="email" id="email" v-model="userEmail" required><br><br>
         <label for="password">Password:</label><br>
         <input type="password" id="password" v-model="userPass" required><br><br>
-        <button type="submit">Login</button>
+        <button type="submit" id="login">Login</button>
       </form>
       <p v-if="loginError" style="color: red;">{{ loginError }}</p>
       <p v-if="SuccessMsg" style="color: green;">{{ SuccessMsg }}</p>
@@ -39,5 +39,9 @@
   
   <style>
     /* Add your custom styles here */
+
+    #login:active {
+        background-color: black;
+    }
   </style>
   

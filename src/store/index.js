@@ -116,20 +116,7 @@ export default createStore({
         console.error('Error updating product data:', error);
         throw error; 
       }
-    }, 
-    async editUser({ commit }, updatedUser) {
-      try {
-        const response = await axios.patch(`${baseUrl}user/${updatedUser.userID}`, updatedUser);
-        const updatedData = response.data; 
-        commit('updateUser', updatedData); 
-        console.log('User data updated successfully:', updatedData);
-        return updatedData;
-      } catch (error) {
-        console.error('Error updating user data:', error);
-        throw error; 
-      }
     },
-
 
     async addProduct({ state, commit }, newProduct) {
       try {
@@ -163,24 +150,26 @@ export default createStore({
       }
     },
     async deletePerson(context, userID) {
-      try{
+      try {
         const res = await fetch(`${baseUrl}user/${userID}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
         });
-
+    
         if (!res.ok) {
           throw new Error("Failed to delete user");
         }
-        context.commit("deletePerson", userID);
+    
+        context.commit("deletePerson", userID); // Commit mutation to update state
         return true;
       } catch (error) {
         console.error("Error deleting user:", error);
         throw error;
       }
-      },
+    },
+    
     
 
     async register({ commit }, userData) {

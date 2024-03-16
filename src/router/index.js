@@ -4,7 +4,9 @@ import Register from '../views/Register.vue';
 import Login from '@/views/Login.vue';
 import Admin from '@/views/Admin.vue';
 import Products from '@/views/Products.vue';
-import AboutView from '../views/AboutView.vue'; // Ensure correct import for AboutView
+import AboutView from '../views/AboutView.vue'; 
+import Basket from '@/views/Basket.vue';
+import Profile from '@/views/Profile.vue';
 
 const routes = [
   {
@@ -36,6 +38,16 @@ const routes = [
     path: '/login',
     name: 'login',
     component: Login
+  },
+  {
+    path: '/basket',
+    name: 'basket',
+    component: Basket
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: Profile
   }
 ];
 
