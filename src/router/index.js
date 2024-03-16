@@ -7,6 +7,7 @@ import Products from '@/views/Products.vue';
 import AboutView from '../views/AboutView.vue'; 
 import Basket from '@/views/Basket.vue';
 import Profile from '@/views/Profile.vue';
+import store from '../store';
 
 const routes = [
   {
@@ -27,7 +28,8 @@ const routes = [
   {
     path: '/admin',
     name: 'admin',
-    component: Admin
+    component: Admin,
+    meta: { requiresAuth: true }
   },
   {
     path: '/products',
@@ -42,18 +44,33 @@ const routes = [
   {
     path: '/basket',
     name: 'basket',
-    component: Basket
+    component: Basket,
+    meta: { requiresAuth: true }
   },
   {
     path: '/profile',
     name: 'profile',
-    component: Profile
+    component: Profile,
+    meta: { requiresAuth: true }
   }
 ];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
-});
+});   
 
+
+router.beforeEach(async (to, from, next) => {
+  if (to.meta.requiresAuth && !store.getters.isLoggedIn) {
+  
+    next({ name: 'login' });
+  } else if (to.name === 'login' && store.getters.isLoggedIn) {
+   
+    next({ name: 'home' });
+  } else {
+
+    next();
+  }
+});
 export default router;

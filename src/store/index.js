@@ -3,16 +3,19 @@ import axios from 'axios';
 import router from '@/router';
 
 const baseUrl = "https://capstone-back-m8cq.onrender.com/";
+const token = localStorage.getItem('token');
 
 export default createStore({
   state: {
     product: [],
     users: [],
     registrationMsg: '',
-    token: null,
+    token: localStorage.getItem('token') || null,
+    user: null,
     loginError: '',
     SuccessMsg: '',
-    cart: []
+    cart: [],
+    currentUser: null,
   },
   mutations: {
     setProduct(state, product) {
@@ -47,6 +50,18 @@ export default createStore({
     },
     setToken(state, token) {
       state.token = token;
+      localStorage.setItem('token', token);
+    },
+    setUser(state, user) {
+      state.user = user;
+    },
+    clearAuthData(state) {
+      state.token = null;
+      state.user = null;
+      localStorage.removeItem('token');
+    },
+    setCurrentUser(state, userData) {
+      state.currentUser = userData;
     },
     setLoginError(state, error) {
       state.loginError = error;
@@ -193,30 +208,49 @@ export default createStore({
     },
 
   
-    async login(context, { email, password }) {
+    // async login(context, { email, password }) {
+    //   try {
+    //     const response = await axios.post(`${baseUrl}login`, { userEmail: email, userPass: password });
+    //     if (response && response.data) {
+    //       const { token, msg } = response.data;
+    //       if (token) {
+    //         context.commit('setToken', token);
+    //         context.commit('setLoginError', '');
+    //         localStorage.setItem('token', token);
+    
+    //         // Fetch and set current user data
+    //         const userResponse = await axios.get(`${baseUrl}user`, {
+    //           headers: { Authorization: `Bearer ${token}` }
+    //         });
+    //         const userData = userResponse.data;
+    //         context.commit('setCurrentUser', userData);
+    
+    //         router.push({ name: 'home' }); // Redirect to home or desired route
+    //       } else {
+    //         context.commit('setToken', null);
+    //         context.commit('setLoginError', msg);
+    //         localStorage.removeItem('token');
+    //       }
+    //     } else {
+    //       throw new Error('Invalid response received');
+    //     }
+    //     context.commit('setSuccessMsg', 'Login successful');
+    //   } catch (error) {
+    //     console.error('Login error:', error.response ? error.response.data.msg : error.message);
+    //     context.commit('setToken', null);
+    //     context.commit('setLoginError', 'Login failed');
+    //     localStorage.removeItem('token');
+    //   }
+    // },
+    async login({ commit }, { email, password }) {
       try {
         const response = await axios.post(`${baseUrl}login`, { userEmail: email, userPass: password });
-        if (response && response.data) {
-          const { token, msg } = response.data;
-          if (token) {
-            context.commit('setToken', token);
-            context.commit('setLoginError', '');
-            localStorage.setItem('token', token);
-          } else {
-            context.commit('setToken', null);
-            context.commit('setLoginError', msg);
-            localStorage.removeItem('token');
-          }
-        } else {
-          throw new Error('Invalid response received');
-        }
-        context.commit('setSuccessMsg', 'Login successful');
-        router.push({ name: 'home' }); 
+        const { token, user } = response.data;
+        commit('setToken', token);
+        commit('setUser', user);
       } catch (error) {
-        console.error('Login error:', error.response ? error.response.data.msg : error.message);
-        context.commit('setToken', null);
-        context.commit('setLoginError', 'Login failed');
-        localStorage.removeItem('token');
+        console.error('Login error:', error);
+        throw error;
       }
     },
     async fetchProduct(context, productId) {
@@ -227,7 +261,22 @@ export default createStore({
       } catch (error) {
         console.error('Error fetching product:', error);
       }
-    }
+    },
+    logout({ commit }) {
+      commit('clearAuthData');
+    },
+    async fetchUser({ commit, state }) {
+      try {
+        const response = await axios.get(`${baseUrl}user`, {
+          headers: { Authorization: `Bearer ${state.token}` }
+        });
+        const user = response.data;
+        commit('setUser', user);
+      } catch (error) {
+        console.error('Fetch user error:', error);
+        throw error;
+      }
+    },
   },
   getters: {
     isLoggedIn: state => {
@@ -239,6 +288,9 @@ export default createStore({
     cartTotalPrice: state => {
       return state.cart.reduce((total, item) => total + item.price * item.quantity, 0);
     },
+    currentUser: state => state.currentUser,
+    isLoggedIn: state => !!state.token,
+    currentUser: state => state.user,
   },
   modules: {},
 });
