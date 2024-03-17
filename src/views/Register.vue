@@ -36,23 +36,19 @@
     },
 	},
 	methods: {
- async registerUser() {
+    async registerUser() {
       try {
-        console.log("Form Data:", this.formData);
-        const response = await this.register(this.formData);
-        if (response.success) {
-          console.log("User registered successfully");
-          this.$router.push({ name: "home" });
-        } else {
-          console.error("Registration failed:", response.message);
-        }
+        const response = await this.$store.dispatch('registerUser', this.userData);
+        console.log('Registration successful:', response);
+        // Redirect or show success message as needed
       } catch (error) {
-        console.error("Error registering user:", error);
+        console.error('Error registering user:', error);
+        // Display error message to the user or handle the error appropriately
       }
     },
-    ...mapActions(['register']),
   },
-         };
+  };
+      
          </script>
          
          <style>

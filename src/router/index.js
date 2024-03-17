@@ -67,7 +67,7 @@ router.beforeEach(async (to, from, next) => {
     next({ name: 'login' });
   } else if (to.name === 'login' && store.getters.isLoggedIn) {
    
-    next({ name: 'home' });
+    next({ name: '' });
   } else {
 
     next();

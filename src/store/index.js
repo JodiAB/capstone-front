@@ -1,10 +1,12 @@
+// Import necessary modules
 import { createStore } from "vuex";
 import axios from 'axios';
 import router from '@/router';
 
+// Base URL for API requests
 const baseUrl = "https://capstone-back-m8cq.onrender.com/";
-const token = localStorage.getItem('token');
 
+// Initialize Vuex store
 export default createStore({
   state: {
     product: [],
@@ -15,7 +17,9 @@ export default createStore({
     loginError: '',
     SuccessMsg: '',
     cart: [],
+    userId: null,
     currentUser: null,
+    selectedUser: null,
   },
   mutations: {
     setProduct(state, product) {
@@ -33,23 +37,27 @@ export default createStore({
     setRegistrationMsg(state, msg) {
       state.registrationMsg = msg;
     },
-    
     setUsers(state, data) {
       state.users = data;
     },
-    
+    setSelectedUser(state, user) {
+      state.selectedUser = user;
+    },
+    setUserId(state, userId) {
+      state.userId = userId;
+    },
     updateUser(state, updatedUser) {
       const index = state.users.findIndex(user => user.userID === updatedUser.userID);
       if (index !== -1) {
         state.users.splice(index, 1, updatedUser);
       }
     },
-    
     deletePerson(state, userID) {
       state.users = state.users.filter(user => user.userID !== userID);
     },
-    setToken(state, token) {
+    setToken(state, { token, userId }) {
       state.token = token;
+      state.userId = userId;
       localStorage.setItem('token', token);
     },
     setUser(state, user) {
@@ -69,17 +77,6 @@ export default createStore({
     setSuccessMsg(state, msg) {
       state.SuccessMsg = msg;
     },
-    // addToCart(state, product) {
-    //   const existingProduct = state.cart.find(item => item.id === product.id);
-    //   if (existingProduct) {
-    //     existingProduct.quantity++;
-    //   } else {
-    //     state.cart.push({ ...product, quantity: 1 });
-    //   }
-    // },
-    // removeFromCart(state, productId) {
-    //   state.cart = state.cart.filter(item => item.id !== productId);
-    // },
     updateQuantity(state, { productId, quantity }) {
       const product = state.cart.find(item => item.id === productId);
       if (product) {
@@ -119,33 +116,44 @@ export default createStore({
         console.error("Error fetching users:", e);
       }
     },
-    
+    async getUserById({ commit, state }, userID) {
+      try {
+        const response = await axios.get(`${baseUrl}user/${userID}`, {
+          headers: { Authorization: `Bearer ${state.token}` }
+        });
+        const user = response.data;
+        commit('setSelectedUser', user);
+        console.log('User data fetched:', user);
+        return user;
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        throw error;
+      }
+    },
     async editProduct({ commit }, updatedProduct) {
       try {
         const response = await axios.patch(`${baseUrl}product/${updatedProduct.id}`, updatedProduct);
-        const updatedData = response.data; 
-        commit('updateProduct', updatedData); 
+        const updatedData = response.data;
+        commit('updateProduct', updatedData);
         console.log('Product data updated successfully:', updatedData);
         return updatedData;
       } catch (error) {
         console.error('Error updating product data:', error);
-        throw error; 
+        throw error;
       }
     },
-
     async addProduct({ state, commit }, newProduct) {
       try {
         const response = await axios.post(`${baseUrl}product`, newProduct);
-        const product = response.data;  
-        commit('setProduct', [...state.product, product]); 
+        const product = response.data;
+        commit('setProduct', [...state.product, product]);
         console.log('Product added successfully:', product);
-        return product; 
+        return product;
       } catch (error) {
         console.error('Error adding product:', error);
-        throw error; 
+        throw error;
       }
     },
-    
     async deleteProduct(context, id) {
       try {
         const res = await fetch(`${baseUrl}product/${id}`, {
@@ -172,110 +180,77 @@ export default createStore({
             "Content-Type": "application/json",
           },
         });
-    
         if (!res.ok) {
           throw new Error("Failed to delete user");
         }
-    
-        context.commit("deletePerson", userID); // Commit mutation to update state
+        context.commit("deletePerson", userID);
         return true;
       } catch (error) {
         console.error("Error deleting user:", error);
         throw error;
       }
     },
-    
-    
-
-    async register({ commit }, userData) {
+    async registerUser({ commit }, userData) {
       try {
         const response = await axios.post(`${baseUrl}register`, userData);
-        const responseData = response.data;
+        const { token, userId } = response.data; // Assuming your response contains user ID
+        
+        console.log('User ID after registration:', userId); // Log the user ID
+        
+        commit('setToken', { token, userId });
+        commit('setUserId', userId); // Set userId after registration
     
-    
-        if (response.status === 200 && responseData.success) {
-          commit('setRegistrationMsg', responseData.message);
-          console.log('Registration successful:', responseData.message);
-          return { success: true };  
-        } else {
-          console.error('Registration failed:', responseData.message);
-          return { success: false, message: responseData.message }; 
-        }
+        router.push({ name: 'home' });
+        
+        return response.data;
       } catch (error) {
-        console.error('Error registering user:', error);
-        throw error; 
+        console.error('Registration error:', error);
+        throw error;
       }
     },
-
-  
-    // async login(context, { email, password }) {
-    //   try {
-    //     const response = await axios.post(`${baseUrl}login`, { userEmail: email, userPass: password });
-    //     if (response && response.data) {
-    //       const { token, msg } = response.data;
-    //       if (token) {
-    //         context.commit('setToken', token);
-    //         context.commit('setLoginError', '');
-    //         localStorage.setItem('token', token);
-    
-    //         // Fetch and set current user data
-    //         const userResponse = await axios.get(`${baseUrl}user`, {
-    //           headers: { Authorization: `Bearer ${token}` }
-    //         });
-    //         const userData = userResponse.data;
-    //         context.commit('setCurrentUser', userData);
-    
-    //         router.push({ name: 'home' }); // Redirect to home or desired route
-    //       } else {
-    //         context.commit('setToken', null);
-    //         context.commit('setLoginError', msg);
-    //         localStorage.removeItem('token');
-    //       }
-    //     } else {
-    //       throw new Error('Invalid response received');
-    //     }
-    //     context.commit('setSuccessMsg', 'Login successful');
-    //   } catch (error) {
-    //     console.error('Login error:', error.response ? error.response.data.msg : error.message);
-    //     context.commit('setToken', null);
-    //     context.commit('setLoginError', 'Login failed');
-    //     localStorage.removeItem('token');
-    //   }
-    // },
     async login({ commit }, { email, password }) {
       try {
         const response = await axios.post(`${baseUrl}login`, { userEmail: email, userPass: password });
-        const { token, user } = response.data;
-        commit('setToken', token);
-        commit('setUser', user);
+        const { token, userId } = response.data; // Assuming your response contains user ID
+        
+        console.log('User ID after login:', userId); // Log the user ID
+        
+        commit('setToken', { token, userId });
+        commit('setUserId', userId); // Set userId after login
+    
+        // Call fetchUserData after login
+        await this.dispatch('fetchUserData');
+    
+        router.push({ name: 'home' });
+        
+        return response.data;
       } catch (error) {
         console.error('Login error:', error);
         throw error;
       }
     },
-    async fetchProduct(context, productId) {
+    async fetchUserData({ commit, state }) {
       try {
-        const response = await axios.get(`${baseUrl}products/${productId}`);
-        const product = response.data;
-        context.commit('addToCart', product);
+        const userToken = localStorage.getItem('token');
+        const userId = state.userId; // Get userId from Vuex state
+        if (!userId) {
+          throw new Error('User ID not available');
+        }
+        const response = await axios.get(`${baseUrl}user/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        });
+        const userData = response.data; // Assuming the response contains user data
+        commit('setUser', userData); // Commit mutation to update user state
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.error('Error fetching user data:', error);
+        // Handle error gracefully, redirect to login page, etc.
+        throw error; // Rethrow the error to be caught by the component
       }
     },
     logout({ commit }) {
       commit('clearAuthData');
-    },
-    async fetchUser({ commit, state }) {
-      try {
-        const response = await axios.get(`${baseUrl}user`, {
-          headers: { Authorization: `Bearer ${state.token}` }
-        });
-        const user = response.data;
-        commit('setUser', user);
-      } catch (error) {
-        console.error('Fetch user error:', error);
-        throw error;
-      }
     },
   },
   getters: {
@@ -290,7 +265,7 @@ export default createStore({
     },
     currentUser: state => state.currentUser,
     isLoggedIn: state => !!state.token,
-    currentUser: state => state.user,
+    selectedUser: state => state.selectedUser,
   },
   modules: {},
 });
