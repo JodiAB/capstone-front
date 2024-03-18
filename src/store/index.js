@@ -193,12 +193,12 @@ export default createStore({
     async registerUser({ commit }, userData) {
       try {
         const response = await axios.post(`${baseUrl}register`, userData);
-        const { token, userId } = response.data; // Assuming your response contains user ID
+        const { token, userId } = response.data;
         
-        console.log('User ID after registration:', userId); // Log the user ID
+        console.log('User ID after registration:', userId);
         
         commit('setToken', { token, userId });
-        commit('setUserId', userId); // Set userId after registration
+        commit('setUserId', userId); 
     
         router.push({ name: 'home' });
         
@@ -211,14 +211,14 @@ export default createStore({
     async login({ commit }, { email, password }) {
       try {
         const response = await axios.post(`${baseUrl}login`, { userEmail: email, userPass: password });
-        const { token, userId } = response.data; // Assuming your response contains user ID
+        const { token, userId } = response.data;
         
-        console.log('User ID after login:', userId); // Log the user ID
+        console.log('User ID after login:', userId);
         
         commit('setToken', { token, userId });
-        commit('setUserId', userId); // Set userId after login
+        commit('setUserId', userId); 
     
-        // Call fetchUserData after login
+  
         await this.dispatch('fetchUserData');
     
         router.push({ name: 'home' });
