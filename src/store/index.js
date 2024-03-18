@@ -16,10 +16,10 @@ export default createStore({
     user: null,
     loginError: '',
     SuccessMsg: '',
-    cart: [],
-    userId: null,
-    currentUser: null,
-    selectedUser: null,
+    // cart: [],
+    userPro: null,
+    // currentUser: null,
+    // selectedUser: null,
   },
   mutations: {
     setProduct(state, product) {
@@ -43,8 +43,8 @@ export default createStore({
     setSelectedUser(state, user) {
       state.selectedUser = user;
     },
-    setUserId(state, userId) {
-      state.userId = userId;
+    setUserId(state, userID) {
+      state.userID = userID;
     },
     updateUser(state, updatedUser) {
       const index = state.users.findIndex(user => user.userID === updatedUser.userID);
@@ -57,8 +57,9 @@ export default createStore({
     },
     setToken(state, { token, userId }) {
       state.token = token;
-      state.userId = userId;
-      localStorage.setItem('token', token);
+      state.userId = userId; 
+      localStorage.setItem('jwt', token);
+      localStorage.setItem('userId', userId); 
     },
     setUser(state, user) {
       state.user = user;
@@ -71,18 +72,21 @@ export default createStore({
     setCurrentUser(state, userData) {
       state.currentUser = userData;
     },
+    userPro(state, user ){
+      state.userPro = user; 
+    },
     setLoginError(state, error) {
       state.loginError = error;
     },
     setSuccessMsg(state, msg) {
       state.SuccessMsg = msg;
     },
-    updateQuantity(state, { productId, quantity }) {
-      const product = state.cart.find(item => item.id === productId);
-      if (product) {
-        product.quantity = quantity;
-      }
-    },
+    // updateQuantity(state, { productId, quantity }) {
+    //   const product = state.cart.find(item => item.id === productId);
+    //   if (product) {
+    //     product.quantity = quantity;
+    //   }
+    // },
     clearCart(state) {
       state.cart = [];
     },
@@ -116,20 +120,29 @@ export default createStore({
         console.error("Error fetching users:", e);
       }
     },
-    async getUserById({ commit, state }, userID) {
-      try {
-        const response = await axios.get(`${baseUrl}user/${userID}`, {
-          headers: { Authorization: `Bearer ${state.token}` }
-        });
-        const user = response.data;
-        commit('setSelectedUser', user);
-        console.log('User data fetched:', user);
-        return user;
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        throw error;
-      }
-    },
+
+
+async getUserById({ commit, state }, userID) {
+  try {
+    if (!userID || isNaN(userID)) {
+      throw new Error('Invalid userID');
+    }
+
+    const response = await axios.get(`${baseUrl}user/${userID}`, {
+      headers: { Authorization: `Bearer ${state.token}` }
+    });
+
+    const user = response.data;
+    commit('setSelectedUser', user);
+    console.log('User data fetched:', user);
+    return user;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    throw error;
+  }
+},
+
+ 
     async editProduct({ commit }, updatedProduct) {
       try {
         const response = await axios.patch(`${baseUrl}product/${updatedProduct.id}`, updatedProduct);
@@ -195,7 +208,7 @@ export default createStore({
         const response = await axios.post(`${baseUrl}register`, userData);
         const { token, userId } = response.data;
         
-        console.log('User ID after registration:', userId);
+        console.log('User ID after registration:', userID);
         
         commit('setToken', { token, userId });
         commit('setUserId', userId); 
@@ -208,45 +221,42 @@ export default createStore({
         throw error;
       }
     },
-    async login({ commit }, { email, password }) {
+    async login({ commit }, credentials) {
       try {
-        const response = await axios.post(`${baseUrl}login`, { userEmail: email, userPass: password });
-        const { token, userId } = response.data;
-        
-        console.log('User ID after login:', userId);
-        
-        commit('setToken', { token, userId });
-        commit('setUserId', userId); 
-    
-  
-        await this.dispatch('fetchUserData');
-    
-        router.push({ name: 'home' });
-        
-        return response.data;
+        const response = await axios.post(`${baseUrl}login`, credentials);
+        if (response.data && response.data.token) {
+          commit('setToken', { token: response.data.token });
+          commit('setSuccessMsg', 'Login successful');
+          await router.push('/');
+          return true; 
+        } else {
+          throw new Error('Invalid response from server');
+        }
       } catch (error) {
-        console.error('Login error:', error);
-        throw error;
+        console.error('Error during login:', error);
+        commit('setLoginError', 'Login failed. Please try again.');
+        throw error; 
       }
     },
+        
     async fetchUserData({ commit, state }) {
       try {
-        const userToken = localStorage.getItem('token');
-        const userId = state.userId; // Get userId from Vuex state
-        if (!userId) {
-          throw new Error('User ID not available');
-        }
-        const response = await axios.get(`${baseUrl}user/${userId}`, {
+        const userToken = state.token || localStorage.getItem('jwt');
+        const userId = state.userId || localStorage.getItem('userId');
+      if (!userToken || !userId) {
+        throw new Error('User token or userID not found');
+      }
+      const response = await axios.get(`${baseUrl}user/${userId}`, {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
         });
-        const userData = response.data; // Assuming the response contains user data
-        commit('setUser', userData); // Commit mutation to update user state
+        const userData = response.data;
+        commit('setUser', userData);
+        return userData;
       } catch (error) {
         console.error('Error fetching user data:', error);
-        // Handle error gracefully, redirect to login page, etc.
-        throw error; // Rethrow the error to be caught by the component
+        throw error;
       }
     },
     logout({ commit }) {
@@ -257,15 +267,8 @@ export default createStore({
     isLoggedIn: state => {
       return state.token !== null;
     },
-    cartTotalQuantity: state => {
-      return state.cart.reduce((total, item) => total + item.quantity, 0);
-    },
-    cartTotalPrice: state => {
-      return state.cart.reduce((total, item) => total + item.price * item.quantity, 0);
-    },
-    currentUser: state => state.currentUser,
+    getUserPro: (state) => state.userPro,
     isLoggedIn: state => !!state.token,
-    selectedUser: state => state.selectedUser,
   },
   modules: {},
 });

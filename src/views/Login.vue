@@ -14,6 +14,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   data() {
     return {
@@ -32,12 +33,13 @@ export default {
   methods: {
     async loginUser() {
       try {
-        const response = await this.$store.dispatch('login', { email: this.email, password: this.password });
-        console.log('Login successful:', response);
-        // Redirect or show success message as needed
+        
+        const { userEmail, userPass } = this;
+        const credentials = { userEmail, userPass };
+        await this.$store.dispatch('login', credentials);
       } catch (error) {
-        console.error('Error logging in:', error);
-        // Display error message to the user or handle the error appropriately
+        console.error('Error during login:', error);
+        alert('Login failed. Please check your credentials.');
       }
     },
   },

@@ -2,9 +2,8 @@
   <div>
     <h1>User Profile</h1>
     <div v-if="userData">
-      <p>Name: {{ userData.name }}</p>
-      <p>Email: {{ userData.email }}</p>
-      <!-- Display other user details as needed -->
+      <p>Name: {{ userData.userName }}</p>
+      <p>Email: {{ userData.userEmail }}</p>
     </div>
     <div v-else>
       <p>Loading user data...</p>
@@ -18,19 +17,18 @@
 export default {
   computed: {
     userData() {
-      return this.$store.state.user;
+      return this.$store.getters.userData;
     },
   },
   methods: {
-    async fetchUserData() {
+    fetchUserData: async function() {
       try {
         await this.$store.dispatch('fetchUserData');
       } catch (error) {
         console.error('Error fetching user data:', error);
-        // Handle error gracefully, redirect to login page, etc.
       }
     },
-    async logoutUser() {
+    logoutUser: async function() {
       try {
         await this.$store.dispatch('logout');
         this.$router.push('/login');
@@ -39,9 +37,9 @@ export default {
       }
     },
   },
-  created() {
-    // Fetch user data when the component is created (after successful login or registration)
-    this.fetchUserData();
+  async created() {
+    await this.fetchUserData(); // Ensure correct binding with 'this'
   },
 };
 </script>
+

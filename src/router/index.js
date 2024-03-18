@@ -62,14 +62,13 @@ const router = createRouter({
 
 
 router.beforeEach(async (to, from, next) => {
+  console.log('Route navigation to:', to.name);
+  console.log('Is logged in:', store.getters.isLoggedIn); 
   if (to.meta.requiresAuth && !store.getters.isLoggedIn) {
-  
     next({ name: 'login' });
   } else if (to.name === 'login' && store.getters.isLoggedIn) {
-   
-    next({ name: '' });
+    next({ name: 'home' });
   } else {
-
     next();
   }
 });

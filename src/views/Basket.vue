@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
     <div>
       <div class="main">
         <div class="cartpg">
@@ -330,4 +330,17 @@
         font-size: 1.8rem;
       }
     }
+    </style> -->
+    <template lang="">
+      <div>
+        
+      </div>
+    </template>
+    <script>
+    export default {
+      
+    }
+    </script>
+    <style lang="">
+      
     </style>
