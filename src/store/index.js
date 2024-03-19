@@ -3,6 +3,7 @@ import { createStore } from "vuex";
 import axios from 'axios';
 import router from '@/router';
 
+
 // Base URL for API requests
 const baseUrl = "https://capstone-back-m8cq.onrender.com/";
 
@@ -13,15 +14,26 @@ export default createStore({
     users: [],
     registrationMsg: '',
     token: localStorage.getItem('token') || null,
+    userID: localStorage.getItem('userID') || null,
     user: null,
     loginError: '',
     SuccessMsg: '',
+    currentUser: null,
     // cart: [],
-    userPro: null,
+   
     // currentUser: null,
     // selectedUser: null,
   },
   mutations: {
+
+    setUserName(state, { firstName, lastName }) {
+      state.user.firstName = firstName;
+      state.user.lastName = lastName;
+    },
+  
+    setUserEmail(state, email) {
+      state.user.userEmail = email;
+    },
     setProduct(state, product) {
       state.product = product;
     },
@@ -43,9 +55,13 @@ export default createStore({
     setSelectedUser(state, user) {
       state.selectedUser = user;
     },
-    setUserId(state, userID) {
-      state.userID = userID;
-    },
+
+
+    // setUserID(state, userID) {
+    //   state.userID = userID;
+
+    //   Cookies.set('userID', userID, { expires: 1 }); 
+    // },
     updateUser(state, updatedUser) {
       const index = state.users.findIndex(user => user.userID === updatedUser.userID);
       if (index !== -1) {
@@ -55,19 +71,32 @@ export default createStore({
     deletePerson(state, userID) {
       state.users = state.users.filter(user => user.userID !== userID);
     },
-    setToken(state, { token, userId }) {
+    setToken(state, { token, userID }) {
       state.token = token;
-      state.userId = userId; 
-      localStorage.setItem('jwt', token);
-      localStorage.setItem('userId', userId); 
+      localStorage.setItem('token', token);
+      state.userID = userID;
+      localStorage.setItem('userID', userID);
     },
-    setUser(state, user) {
-      state.user = user;
+    // setUserID(state, userID) {
+    //   state.userID = userID;
+    //   localStorage.setItem('userID', userID);
+    // },
+    
+    // setToken(state, token) {
+    //   state.token = token;
+    //   Cookies.set('token', token, { expires: 1 }); 
+    // },
+
+    setUser(state, userData) {
+      state.user = userData;
+      localStorage.setItem('user', JSON.stringify(userData)); // Optionally, store user data in localStorage
     },
     clearAuthData(state) {
       state.token = null;
       state.user = null;
+      state.userID = null;
       localStorage.removeItem('token');
+      localStorage.removeItem('userID');
     },
     setCurrentUser(state, userData) {
       state.currentUser = userData;
@@ -122,7 +151,8 @@ export default createStore({
     },
 
 
-async getUserById({ commit, state }, userID) {
+// Vuex store action to fetch user details by userID
+async getUserDetails({ commit, state }, userID) {
   try {
     if (!userID || isNaN(userID)) {
       throw new Error('Invalid userID');
@@ -132,12 +162,14 @@ async getUserById({ commit, state }, userID) {
       headers: { Authorization: `Bearer ${state.token}` }
     });
 
-    const user = response.data;
-    commit('setSelectedUser', user);
-    console.log('User data fetched:', user);
-    return user;
+    const userData = response.data;
+    commit('setUserName', { firstName: userData.firstName, lastName: userData.lastName });
+    commit('setUserEmail', userData.email);
+    // Commit mutations for other user details as needed
+
+    return userData; // Optionally, return the fetched user data
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.error('Error fetching user details:', error);
     throw error;
   }
 },
@@ -221,54 +253,87 @@ async getUserById({ commit, state }, userID) {
         throw error;
       }
     },
+    // async login({ commit }, credentials) {
+    //   try {
+    //     const response = await axios.post(`${baseUrl}login`, credentials);
+    //     if (response.data && response.data.token) {
+    //       commit('setToken', { token: response.data.token });
+    //       commit('setSuccessMsg', 'Login successful');
+    //       await router.push('/');
+    //       return true; 
+    //     } else {
+    //       throw new Error('Invalid response from server');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error during login:', error);
+    //     commit('setLoginError', 'Login failed. Please try again.');
+    //     throw error; 
+    //   }
+    // },
     async login({ commit }, credentials) {
       try {
         const response = await axios.post(`${baseUrl}login`, credentials);
-        if (response.data && response.data.token) {
-          commit('setToken', { token: response.data.token });
-          commit('setSuccessMsg', 'Login successful');
-          await router.push('/');
-          return true; 
-        } else {
-          throw new Error('Invalid response from server');
-        }
+        const { token, userInfo} = response.data;
+  
+        commit('setToken', token);
+      commit('setUser', userInfo);
+
+      localStorage.setItem('token', token);
+  
+        router.push({ name: 'profile', params: { userID } });
+  
+        return true; // Indicate successful login if needed
       } catch (error) {
         console.error('Error during login:', error);
-        commit('setLoginError', 'Login failed. Please try again.');
-        throw error; 
+        let errorMessage = 'Login failed. Please try again later.';
+        if (error.response && error.response.status === 401) {
+          errorMessage = 'Invalid credentials. Please try again.';
+        }
+        commit('setLoginError', errorMessage);
+        throw error;
+    
+    
       }
     },
-        
     async fetchUserData({ commit, state }) {
       try {
-        const userToken = state.token || localStorage.getItem('jwt');
-        const userId = state.userId || localStorage.getItem('userId');
-      if (!userToken || !userId) {
-        throw new Error('User token or userID not found');
-      }
-      const response = await axios.get(`${baseUrl}user/${userId}`, {
+        const userToken = state.token;
+        if (!userToken) {
+          throw new Error('Token not available');
+        }
+        const response = await axios.get(`${baseUrl}user`, {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
         });
         const userData = response.data;
-        commit('setUser', userData);
-        return userData;
+        commit('setUser', userData); // Commit user data mutation
+        console.log('Fetched User Data:', userData); // Log fetched data
       } catch (error) {
         console.error('Error fetching user data:', error);
         throw error;
       }
     },
+    
+    
     logout({ commit }) {
       commit('clearAuthData');
+      // Optionally, you can clear additional user data or perform other actions here
     },
   },
   getters: {
     isLoggedIn: state => {
       return state.token !== null;
     },
-    getUserPro: (state) => state.userPro,
-    isLoggedIn: state => !!state.token,
+    // getUserByID: state => userId => {
+    //   return state.users.find(user => user.userID === userId);
+    // },
+    getUserData: state => {
+      return state.user;
+    },
+    isLoggedIn: state => {
+      return state.token !== null;
+    },
   },
   modules: {},
 });

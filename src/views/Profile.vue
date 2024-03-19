@@ -1,45 +1,46 @@
 <template>
   <div>
-    <h1>User Profile</h1>
-    <div v-if="userData">
-      <p>Name: {{ userData.userName }}</p>
-      <p>Email: {{ userData.userEmail }}</p>
-    </div>
-    <div v-else>
-      <p>Loading user data...</p>
-    </div>
+    <h1>Profile</h1>
+    <div v-if="user">
+      <p>Name: {{ user.userName }} {{ user.userLast }}</p>
+      <p>Email: {{ user.userEmail }}</p>
+      <!-- Display other user details as needed -->
 
-    <button @click="logoutUser">Logout</button>
+     
+    </div>
+    <button @click="handleLogout">Logout</button>
+    <p v-if="isLoggedIn">User is logged in</p>
+    <p v-else>User is not logged in</p>
   </div>
 </template>
 
 <script>
 export default {
-  computed: {
-    userData() {
-      return this.$store.getters.userData;
-    },
+  data() {
+    return {
+      user: null,
+    };
+  },
+  mounted() {
+    // Fetch user data when component is mounted
+    this.fetchUserData();
   },
   methods: {
-    fetchUserData: async function() {
+    async fetchUserData() {
       try {
+        // Call Vuex action to fetch user data
         await this.$store.dispatch('fetchUserData');
+        // Update local user data from Vuex store
+        this.user = this.$store.getters.getUserData;
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     },
-    logoutUser: async function() {
-      try {
-        await this.$store.dispatch('logout');
-        this.$router.push('/login');
-      } catch (error) {
-        console.error('Error logging out:', error);
-      }
-    },
+
+    handleLogout() {
+    this.$store.dispatch('logout');
+    this.$router.push({ name: 'home' });
   },
-  async created() {
-    await this.fetchUserData(); // Ensure correct binding with 'this'
   },
 };
 </script>
-

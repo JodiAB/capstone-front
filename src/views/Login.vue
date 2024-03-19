@@ -9,12 +9,10 @@
       <button type="submit" id="login">Login</button>
     </form>
     <p v-if="loginError" style="color: red;">{{ loginError }}</p>
-    <p v-if="SuccessMsg" style="color: green;">{{ SuccessMsg }}</p>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
 export default {
   data() {
     return {
@@ -26,14 +24,10 @@ export default {
     loginError() {
       return this.$store.state.loginError;
     },
-    SuccessMsg() {
-      return this.$store.state.SuccessMsg; 
-    },
   },
   methods: {
     async loginUser() {
       try {
-        
         const { userEmail, userPass } = this;
         const credentials = { userEmail, userPass };
         await this.$store.dispatch('login', credentials);
