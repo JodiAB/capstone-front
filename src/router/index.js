@@ -7,6 +7,7 @@ import Products from '@/views/Products.vue';
 import AboutView from '../views/AboutView.vue'; 
 import Basket from '@/views/Basket.vue';
 import Profile from '@/views/Profile.vue';
+import Contact from '@/views/Contact.vue';
 import store from '../store';
 
 const routes = [
@@ -52,7 +53,12 @@ const routes = [
     name: 'profile',
     component: Profile,
     meta: { requiresAuth: true }
-  }
+  },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: Contact
+  },
 ];
 
 const router = createRouter({

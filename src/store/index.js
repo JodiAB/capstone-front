@@ -1,28 +1,27 @@
-// Import necessary modules
 import { createStore } from "vuex";
 import axios from 'axios';
 import router from '@/router';
+import { mapActions } from 'vuex';
 
-
-// Base URL for API requests
 const baseUrl = "https://capstone-back-m8cq.onrender.com/";
 
-// Initialize Vuex store
+let userData = null;
+try {
+  userData = JSON.parse(localStorage.getItem('user'));
+} catch (error) {
+  console.error('Error parsing user data from localStorage:', error);
+
+}
 export default createStore({
   state: {
-    product: [],
+    products: [],
     users: [],
     registrationMsg: '',
     token: localStorage.getItem('token') || null,
-    userID: localStorage.getItem('userID') || null,
-    user: null,
+    user: userData || null,
     loginError: '',
-    SuccessMsg: '',
     currentUser: null,
-    // cart: [],
-   
-    // currentUser: null,
-    // selectedUser: null,
+    cartItems: [],
   },
   mutations: {
 
@@ -34,8 +33,8 @@ export default createStore({
     setUserEmail(state, email) {
       state.user.userEmail = email;
     },
-    setProduct(state, product) {
-      state.product = product;
+    setProducts(state, products) {
+      state.products = products;
     },
     updateProduct(state, updatedProduct) {
       const index = state.product.findIndex(p => p.id === updatedProduct.id);
@@ -57,11 +56,6 @@ export default createStore({
     },
 
 
-    // setUserID(state, userID) {
-    //   state.userID = userID;
-
-    //   Cookies.set('userID', userID, { expires: 1 }); 
-    // },
     updateUser(state, updatedUser) {
       const index = state.users.findIndex(user => user.userID === updatedUser.userID);
       if (index !== -1) {
@@ -71,35 +65,33 @@ export default createStore({
     deletePerson(state, userID) {
       state.users = state.users.filter(user => user.userID !== userID);
     },
-    setToken(state, { token, userID }) {
+    setToken(state, token) {
       state.token = token;
       localStorage.setItem('token', token);
-      state.userID = userID;
-      localStorage.setItem('userID', userID);
     },
-    // setUserID(state, userID) {
-    //   state.userID = userID;
-    //   localStorage.setItem('userID', userID);
-    // },
-    
-    // setToken(state, token) {
-    //   state.token = token;
-    //   Cookies.set('token', token, { expires: 1 }); 
-    // },
 
-    setUser(state, userData) {
-      state.user = userData;
-      localStorage.setItem('user', JSON.stringify(userData)); // Optionally, store user data in localStorage
+    setUser(state, user) {
+      state.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
     },
+    updatePro(state, updatedPro) {
+      state.user = { ...state.user, ...updatedPro }; 
+      localStorage.setItem('user', JSON.stringify(state.user));
+    },
+
+    updateProfile(state, updatedProfile) { 
+      state.user = { ...state.user, ...updatedProfile }; 
+      localStorage.setItem('user', JSON.stringify(state.user));
+    },
+
     clearAuthData(state) {
       state.token = null;
       state.user = null;
-      state.userID = null;
       localStorage.removeItem('token');
-      localStorage.removeItem('userID');
+      localStorage.removeItem('user');
     },
-    setCurrentUser(state, userData) {
-      state.currentUser = userData;
+    setCurrentUser(state, user) {
+      state.currentUser = user;
     },
     userPro(state, user ){
       state.userPro = user; 
@@ -110,29 +102,39 @@ export default createStore({
     setSuccessMsg(state, msg) {
       state.SuccessMsg = msg;
     },
-    // updateQuantity(state, { productId, quantity }) {
-    //   const product = state.cart.find(item => item.id === productId);
-    //   if (product) {
-    //     product.quantity = quantity;
-    //   }
-    // },
-    clearCart(state) {
-      state.cart = [];
+
+    addToCart(state, item) {
+      state.cartItems.push(item);
     },
+
+    updateCart(state, { itemId, quantity }) {
+      const cartItem = state.cartItems.find(item => item.id === itemId);
+      if (cartItem) {
+        cartItem.quantity = quantity;
+      }
+    },
+    removeCart(state, itemId) {
+      state.cartItems = state.cartItems.filter(item => item.id !== itemId);
+    },
+    clearCart(state) {
+      state.cartItems = [];
+    },
+  
+  
   },
   actions: {
-    async getProducts(context) {
+
+    ...mapActions(['fetchProducts', 'addProductToCart']),
+
+
+    async fetchProducts({ commit }) {
       try {
-        const resp = await fetch(`${baseUrl}product`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((response) => response.json());
-        
-        context.commit("setProduct", resp);
-      } catch(e) {
-        console.error("Error fetching products:", e);
+        const response = await axios.get(`${baseUrl}product`);
+        const products = response.data;
+        commit('setProducts', products);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        throw error;
       }
     },
     async getUsers(context) {
@@ -151,7 +153,7 @@ export default createStore({
     },
 
 
-// Vuex store action to fetch user details by userID
+
 async getUserDetails({ commit, state }, userID) {
   try {
     if (!userID || isNaN(userID)) {
@@ -167,12 +169,31 @@ async getUserDetails({ commit, state }, userID) {
     commit('setUserEmail', userData.email);
     // Commit mutations for other user details as needed
 
-    return userData; // Optionally, return the fetched user data
+    return userData; 
   } catch (error) {
     console.error('Error fetching user details:', error);
     throw error;
   }
 },
+async getUserByEmail({ commit }, userEmail) {
+  try {
+    const response = await axios.get(`${baseUrl}user/email`, {
+      params: {
+        email: userEmail
+      }
+    });
+    const user = response.data;
+    if (!user) {
+      throw new Error('User not found');
+    }
+    commit('setUser', user); // Update the user state with fetched user data
+    return user;
+  } catch (error) {
+    console.error('Error fetching user by email:', error);
+    throw new Error('User not found'); // Throw specific error for user not found
+  }
+},
+
 
  
     async editProduct({ commit }, updatedProduct) {
@@ -273,16 +294,18 @@ async getUserDetails({ commit, state }, userID) {
     async login({ commit }, credentials) {
       try {
         const response = await axios.post(`${baseUrl}login`, credentials);
-        const { token, userInfo} = response.data;
-  
-        commit('setToken', token);
-      commit('setUser', userInfo);
-
-      localStorage.setItem('token', token);
-  
-        router.push({ name: 'profile', params: { userID } });
-  
-        return true; // Indicate successful login if needed
+        const { token } = response.data;
+    
+        if (!token) {
+          throw new Error('Invalid token received');
+        }
+    
+        commit('setToken', token); 
+        localStorage.setItem('token', token); 
+    
+     
+    
+        return true; 
       } catch (error) {
         console.error('Error during login:', error);
         let errorMessage = 'Login failed. Please try again later.';
@@ -291,8 +314,37 @@ async getUserDetails({ commit, state }, userID) {
         }
         commit('setLoginError', errorMessage);
         throw error;
+      }
+    },
     
+
     
+
+    async updateProfile({ commit, state }, updatedUserData) {
+      try {
+        const response = await axios.put(`${baseUrl}user/${state.user.userID}`, updatedProData, {
+          headers: { Authorization: `Bearer ${state.token}` }
+        });
+        const updatedUser = response.data;
+        commit('updatePro', updatedPro);
+        console.log('User profile updated successfully:', updatedPro);
+        return updatedUser;
+      } catch (error) {
+        console.error('Error updating user profile:', error);
+        throw error;
+      }
+    },
+    async deleteUserAccount({ commit, state }) {
+      try {
+        const response = await axios.delete(`${baseUrl}user/${state.user.userID}`, {
+          headers: { Authorization: `Bearer ${state.token}` }
+        });
+        console.log('User account deleted successfully.');
+        commit('clearAuthData'); // Clear user data after account deletion
+        return true;
+      } catch (error) {
+        console.error('Error deleting user account:', error);
+        throw error;
       }
     },
     async fetchUserData({ commit, state }) {
@@ -307,8 +359,8 @@ async getUserDetails({ commit, state }, userID) {
           },
         });
         const userData = response.data;
-        commit('setUser', userData); // Commit user data mutation
-        console.log('Fetched User Data:', userData); // Log fetched data
+        commit('setUser', userData); 
+        console.log('Fetched User Data:', userData); 
       } catch (error) {
         console.error('Error fetching user data:', error);
         throw error;
@@ -318,22 +370,123 @@ async getUserDetails({ commit, state }, userID) {
     
     logout({ commit }) {
       commit('clearAuthData');
-      // Optionally, you can clear additional user data or perform other actions here
+     
+    },
+
+  
+    // addToCart({ commit, state }, product) {
+    //   try {
+       
+    //     const productDetails = state.products.find(p => p.id === product.product_id);
+  
+    //     console.log('Product ID:', product.product_id);
+    //     console.log('State Products:', state.products);
+    //     console.log('Product Details:', productDetails);
+  
+    //     if (!productDetails) {
+    //       throw new Error('Product details not found');
+    //     }
+  
+    //     const cartItem = {
+    //       id: product.id,
+    //       name: productDetails.productName,
+    //       quantity: product.quantity,
+    //       price: productDetails.productPrice,
+    //       image: productDetails.productIMG,
+    //     };
+  
+    //     // Add the item to the cart
+    //     commit('addToCart', cartItem);
+    //     alert(`Added ${cartItem.name} to cart`);
+    //   } catch (error) {
+    //     console.error('Error adding product to cart:', error);
+    //     throw error;
+    //   }
+    // },
+
+// addToCart({ commit, state }, product) {
+//   try {
+//     console.log('Product ID to add to cart:', product.product_id); // Check product ID
+//     console.log('All products:', state.products); // Log all products
+
+//     const productDetails = state.products.find(p => p.id === product.product_id);
+
+//     console.log('Product details found:', productDetails); // Log product details
+//     if (!productDetails) {
+//       throw new Error('Product details not found');
+//     }
+
+//     const cartItem = {
+//       id: product.id,
+//       name: productDetails.productName,
+//       quantity: product.quantity,
+//       price: productDetails.productPrice,
+//       image: productDetails.productIMG,
+//     };
+
+//     // Add the item to the cart
+//     commit('addToCart', cartItem);
+//     alert(`Added ${cartItem.name} to cart`);
+//   } catch (error) {
+//     console.error('Error adding product to cart:', error);
+//     throw error;
+//   }
+// },
+async addToCartAction({ commit, state }, item) {
+  try {
+    const response = await axios.post(`${baseUrl}cart/add`, {
+      user_id: state.user.userID,
+      product_id: item.id,
+      quantity: 1,
+    });
+    const cartItem = response.data;
+    commit('addToCart', cartItem);
+    return cartItem;
+  } catch (error) {
+    console.error('Error adding product to cart:', error);
+    throw error;
+  }
+},
+
+    
+    updateCartQuantity({ commit }, payload) {
+      commit('updateCart', payload);
+    },
+    removeFromCart({ commit }, itemId) {
+      commit('removeCart', itemId);
+    },
+    clearCart({ commit }) {
+      commit('clearCart');
     },
   },
   getters: {
     isLoggedIn: state => {
       return state.token !== null;
     },
-    // getUserByID: state => userId => {
-    //   return state.users.find(user => user.userID === userId);
-    // },
+
     getUserData: state => {
       return state.user;
     },
-    isLoggedIn: state => {
-      return state.token !== null;
-    },
+    allProducts: state => state.products,
+    products: state => state.products,
+    cartItems: state => state.cartItems,
+    cartTotalItems: state => state.cartItems.length,
+    cartTotalQuantity: state =>
+      state.cartItems.reduce((total, item) => total + item.quantity, 0),
+
+      filteredProducts: state => {
+        if (!state.products || state.products.length === 0) {
+          return [];
+        }
+        const searchQuery = state.searchQuery || '';
+
+        return state.products.filter(product =>
+          product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.productDes.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    
+     
+      },
   },
   modules: {},
 });

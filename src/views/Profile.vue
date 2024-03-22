@@ -1,16 +1,13 @@
 <template>
   <div>
-    <h1>Profile</h1>
     <div v-if="user">
-      <p>Name: {{ user.userName }} {{ user.userLast }}</p>
+    <h1>Welcome {{ user.userName }} to your profile page </h1>
+      <p>Name: {{ user.userName }} </p>
+      <p>Last Name: {{ user.userLast }}</p>
       <p>Email: {{ user.userEmail }}</p>
-      <!-- Display other user details as needed -->
 
-     
     </div>
     <button @click="handleLogout">Logout</button>
-    <p v-if="isLoggedIn">User is logged in</p>
-    <p v-else>User is not logged in</p>
   </div>
 </template>
 
@@ -22,25 +19,21 @@ export default {
     };
   },
   mounted() {
-    // Fetch user data when component is mounted
-    this.fetchUserData();
+    this.getUserDataFromLocalStorage();
   },
   methods: {
-    async fetchUserData() {
-      try {
-        // Call Vuex action to fetch user data
-        await this.$store.dispatch('fetchUserData');
-        // Update local user data from Vuex store
-        this.user = this.$store.getters.getUserData;
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+    getUserDataFromLocalStorage() {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        this.user = JSON.parse(userData);
+      } else {
+        console.error('User data not found in local storage');
       }
     },
-
     handleLogout() {
-    this.$store.dispatch('logout');
-    this.$router.push({ name: 'home' });
-  },
+      localStorage.removeItem('user'); 
+      this.$router.push({ name: 'home' }); 
+    },
   },
 };
 </script>

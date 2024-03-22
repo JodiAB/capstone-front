@@ -31,6 +31,12 @@ export default {
         const { userEmail, userPass } = this;
         const credentials = { userEmail, userPass };
         await this.$store.dispatch('login', credentials);
+
+  
+        await this.$store.dispatch('getUserByEmail', userEmail);
+        
+       
+        this.$router.push({ name: 'profile' });
       } catch (error) {
         console.error('Error during login:', error);
         alert('Login failed. Please check your credentials.');
@@ -39,10 +45,3 @@ export default {
   },
 };
 </script>
-
-<style>
-  /* Add your custom styles here */
-  #login:active {
-    background-color: black;
-  }
-</style>
