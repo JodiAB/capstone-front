@@ -23,9 +23,7 @@
           <td>{{ product.productDes }}</td>
           <td>R {{ product.productPrice }}</td>
           <td>
-            <img
-              :src="product.prodIMG"
-              alt="Product Image"
+            <img :src="product.productIMG" alt="Product Image" class="product-image"
               style="width: 100px; height: auto"
             />
           </td>
@@ -47,6 +45,7 @@
           <th>Name</th>
           <th>Last Name</th>
           <th>Email</th>
+          <th>Image</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -56,7 +55,11 @@
           <td>{{ user.userName }}</td>
           <td>{{ user.userLast }}</td>
           <td>{{ user.userEmail }}</td>
-          <td>{{ user.userPass }}</td>
+          <td>
+            <img :src="user.userIMG" alt="user Image" class="user-image"
+              style="width: 100px; height: auto"
+            />
+          </td>
           
   
 
@@ -124,7 +127,6 @@
         <span class="close" @click="closeModal('editModal')">&times;</span>
         <h2>Edit Product</h2>
         <form @submit.prevent="editProduct">
-          <!-- Add @submit.prevent directive here -->
           <label for="editProductName">Name:</label>
           <input
             type="text"
@@ -154,17 +156,17 @@
           />
           <label for="editProductImage">Image:</label>
           <input
+            type="text"
             id="editProductIMG"
             v-model="editedProduct.productIMG"
             required
-            />
+          />
           <button type="submit">Save Changes</button>
         </form>
       </div>
     </div>
 
-
-      <!-- edit modal -->
+      <!-- edit Usermodal -->
     <div v-if="editModal" class="modal">
       <div class="modal-content">
         <span class="close" @click="closeModal('editModal')">&times;</span>
@@ -232,7 +234,7 @@
 
 <script>
 
-
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   data() {
@@ -240,23 +242,24 @@ export default {
       addModal: false,
       editModal: false,
       deleteModal: false,
+      editUserModal: false,
+      deleteUserModal: false,
       editedProduct: {},
-      deleteType: '',
-      selectedProduct: {},
+      editedUser: {},
+      selectedItem: null,
       newProduct: {
-        productName: "",
-        productDes: "",
-        productPrice: "",
-        productQuan: "",
+        productName: '',
+        productDes: '',
+        productPrice: '',
+        productQuan: '',
         productIMG: null,
       },
-      error: null, 
     };
   },
-
   computed: {
+    ...mapGetters(['filteredProducts', 'cartItems']),
     products() {
-      return this.$store.state.product;
+      return this.$store.state.products;
     },
     users() {
       return this.$store.state.users;
@@ -281,6 +284,10 @@ export default {
   },
 
   methods: {
+
+    ...mapActions(['fetchProducts']),
+
+
     openModal(type, id, item) {
   console.log("Opening modal:", type, id, item);
   if (type === "add") {
@@ -333,15 +340,12 @@ openModal(type, id, item) {
       if (this.editedUser.newPassword) {
         this.editedUser.hashedPassword = this.hashPassword(this.editedUser.newPassword);
       }
-      
-      this.$store.dispatch("editUser", this.editedUser)
-        .then(() => {
+
+      this.$store.dispatch("updateProfile", this.editedUser)
+        
           console.log("User data updated successfully");
           this.closeModal("editModal");
-        })
-        .catch((error) => {
-          console.error("Error updating user data:", error);
-        });
+        
     },
 
     closeModal(modalName) {
@@ -445,7 +449,7 @@ deletePerson(userID) {
 
     async fetchData() {
       try {
-        await this.$store.dispatch("getProducts");
+        await this.$store.dispatch("fetchProducts");
       } catch (error) {
         console.error("Error fetching products:", error);
         this.error = error.message; // Set the error message

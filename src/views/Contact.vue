@@ -1,178 +1,164 @@
 <template >
-    <div class="container">
-        <div class="row">
-                <h1>contact us</h1>
-        </div>
-        <div class="row">
-                <h4 style="text-align:center">We'd love to hear from you!</h4>
-        </div>
-        <div class="row input-container">
-                <div class="col-xs-12">
-                    <div class="styled-input wide">
-                        <input type="text" required />
-                        <label>Name</label> 
-                    </div>
-                </div>
-                <div class="col-md-6 col-sm-12">
-                    <div class="styled-input">
-                        <input type="text" required />
-                        <label>Email</label> 
-                    </div>
-                </div>
-                <div class="col-md-6 col-sm-12">
-                    <div class="styled-input" style="float:right;">
-                        <input type="text" required />
-                        <label>Phone Number</label> 
-                    </div>
-                </div>
-                <div class="col-xs-12">
-                    <div class="styled-input wide">
-                        <textarea required></textarea>
-                        <label>Message</label>
-                    </div>
-                </div>
-                <div class="col-xs-12">
-                    <div class="btn-lrg submit-btn">Send Message</div>
-                </div>
-        </div>
+    <div class="desire">
+      <div>
+          <h2>Contact Me</h2>
+          <p>Dont Be Shy</p>
+      
+      </div>
+      <div class="container">  
+        <form id="contact" action="https://formspree.io/f/xeqbvwyd"
+      method="POST">
+          <h3>Quick Contact</h3>
+          <h4>Contact me today, and get reply with in 24 hours!</h4>
+          <fieldset>
+            <input name="text" placeholder="Your name" type="text" tabindex="1" required autofocus>
+          </fieldset>
+          <fieldset>
+            <input name="email" placeholder="Your Email Address" type="email" tabindex="2" required>
+          </fieldset>
+          <fieldset>
+            <input name="tel" placeholder="Your Phone Number" type="tel" tabindex="3" required>
+          </fieldset>
+          <fieldset>
+            <textarea type="message" name="message" placeholder="Type your Message Here...." tabindex="5" required></textarea>
+          </fieldset>
+          <fieldset>
+            <button name="submit" type="submit" id="contact-submit" data-submit="...Sending">Submit</button>
+          </fieldset>
+        </form>
+       
+        
+      </div>
     </div>
+    </template>
+    <script>
+    import { mapState } from 'vuex';
     
-</template>
-<script>
-export default {
+    export default {
+      computed: {
+        ...mapState({
+          contactsData: state => state.Contact
+        }),
+      },
+      created() {
+        this.$store.dispatch('fetchDataFromAPI'); // Corrected action name
+      },
+    }
+    </script>
+    <style >
+    .container {
+    max-width:400px;
+    width:100%;
+    margin:0 auto;
+    position:relative;
+    }
     
-}
-</script>
-<style scoped >
-body {
-    background-color: beige;
-  
-}
-
-h1 {
-    font-family: 'Poppins', sans-serif, 'arial';
-    font-weight: 600;
-    font-size: 72px;
-    color: gold;
-    text-align: center;
-}
-
-h4 {
-    font-family: 'Roboto', sans-serif, 'arial';
+    #contact input[type="text"], #contact input[type="email"], #contact input[type="tel"], #contact input[type="url"], #contact textarea, #contact button[type="submit"] { font:400 12px/16px "Open Sans", Helvetica, Arial, sans-serif; }
+    
+    #contact {
+    background:#F9F9F9;
+    padding:25px;
+    margin:50px 0;
+    }
+    
+    #contact h3 {
+    color: #F96;
+    display: block;
+    font-size: 30px;
     font-weight: 400;
-    font-size: 20px;
-    color: #9b9b9b;
-    line-height: 1.5;
-}
-
-/* ///// inputs /////*/
-
-input:focus ~ label, textarea:focus ~ label, input:valid ~ label, textarea:valid ~ label {
-    font-size: 0.75em;
-    color: #999;
-    top: -5px;
-    -webkit-transition: all 0.225s ease;
-    transition: all 0.225s ease;
-}
-
-.styled-input {
-    float: left;
-    width: 293px;
-    margin: 1rem 0;
-    position: relative;
-    border-radius: 4px;
-}
-
-@media only screen and (max-width: 768px){
-    .styled-input {
-        width:100%;
     }
-}
-
-.styled-input label {
-    color: #999;
-    padding: 1.3rem 30px 1rem 30px;
-    position: absolute;
-    top: 10px;
-    left: 0;
-    -webkit-transition: all 0.25s ease;
-    transition: all 0.25s ease;
-    pointer-events: none;
-}
-
-.styled-input.wide { 
-    width: 650px;
-    max-width: 100%;
-}
-
-input,
-textarea {
-    padding: 30px;
-    border: 0;
-    width: 100%;
-    font-size: 1rem;
-    background-color: #2d2d2d;
-    color: white;
-    border-radius: 4px;
-}
-
-input:focus,
-textarea:focus { outline: 0; }
-
-input:focus ~ span,
-textarea:focus ~ span {
-    width: 100%;
-    -webkit-transition: all 0.075s ease;
-    transition: all 0.075s ease;
-}
-
-textarea {
-    width: 100%;
-    min-height: 15em;
-}
-
-.input-container {
-    width: 650px;
-    max-width: 100%;
-    margin: 20px auto 25px auto;
-}
-
-.submit-btn {
-    float: right;
-    padding: 7px 35px;
-    border-radius: 60px;
-    display: inline-block;
-    background-color: #4b8cfb;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    box-shadow: 0 2px 5px 0 rgba(0,0,0,0.06),
-              0 2px 10px 0 rgba(0,0,0,0.07);
-    -webkit-transition: all 300ms ease;
-    transition: all 300ms ease;
-}
-
-.submit-btn:hover {
-    transform: translateY(1px);
-    box-shadow: 0 1px 1px 0 rgba(0,0,0,0.10),
-              0 1px 1px 0 rgba(0,0,0,0.09);
-}
-
-@media (max-width: 768px) {
-    .submit-btn {
-        width:100%;
-        float: none;
-        text-align:center;
+    
+    #contact h4 {
+    margin:5px 0 15px;
+    display:block;
+    font-size:13px;
     }
-}
-
-input[type=checkbox] + label {
-  color: #ccc;
-  font-style: italic;
-} 
-
-input[type=checkbox]:checked + label {
-  color: #f00;
-  font-style: normal;
-}
-</style>
+    
+    fieldset {
+    border: medium none !important;
+    margin: 0 0 10px;
+    min-width: 100%;
+    padding: 0;
+    width: 100%;
+    }
+    
+    #contact input[type="text"], #contact input[type="email"], #contact input[type="tel"], #contact input[type="url"], #contact textarea {
+    width:100%;
+    border:1px solid #CCC;
+    background:#FFF;
+    margin:0 0 5px;
+    padding:10px;
+    }
+    
+    #contact input[type="text"]:hover, #contact input[type="email"]:hover, #contact input[type="tel"]:hover, #contact input[type="url"]:hover, #contact textarea:hover {
+    -webkit-transition:border-color 0.3s ease-in-out;
+    -moz-transition:border-color 0.3s ease-in-out;
+    transition:border-color 0.3s ease-in-out;
+    border:1px solid #AAA;
+    }
+    
+    #contact textarea {
+    height:100px;
+    max-width:100%;
+    resize:none;
+    }
+    
+    #contact button[type="submit"] {
+    cursor:pointer;
+    width:100%;
+    border:none;
+    background:#0CF;
+    color:#FFF;
+    margin:0 0 5px;
+    padding:10px;
+    font-size:15px;
+    }
+    
+    #contact button[type="submit"]:hover {
+    background:#09C;
+    -webkit-transition:background 0.3s ease-in-out;
+    -moz-transition:background 0.3s ease-in-out;
+    transition:background-color 0.3s ease-in-out;
+    }
+    
+    #contact button[type="submit"]:active { box-shadow:inset 0 1px 3px rgba(0, 0, 0, 0.5); }
+    
+    #contact input:focus, #contact textarea:focus {
+    outline:0;
+    border:1px solid #999;
+    }
+    ::-webkit-input-placeholder {
+    color:#888;
+    }
+    :-moz-placeholder {
+    color:#888;
+    }
+    ::-moz-placeholder {
+    color:#888;
+    }
+    :-ms-input-placeholder {
+    color:#888;
+    }
+    
+    .desire {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(-50deg, yellow, #d5aa28, Black, #8e6729);
+      background-size: 200% 200%; /* Increase the size to cover the entire animation */
+      animation: fire 7s ease infinite;
+    }
+    
+    @keyframes fire {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    </style>

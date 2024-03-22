@@ -16,40 +16,40 @@
 	</div>
          </template>
          
-         <script>
-         import { mapActions } from "vuex";
-         
-         export default {
-	data() {
-	  return {
-	    formData: {
-	      userName: "",
-	      userLast: "",
-	      userEmail: "",
-	      userPass: "",
-	    },
-	  };
-	},
-	computed: {
-		regisMsg() {
-      return this.$store.state.registrationMsg;
-    },
-	},
-	methods: {
-    async registerUser() {
-      try {
-        const response = await this.$store.dispatch('registerUser', this.userData);
-        console.log('Registration successful:', response);
-        // Redirect or show success message as needed
-      } catch (error) {
-        console.error('Error registering user:', error);
-        // Display error message to the user or handle the error appropriately
-      }
-    },
-  },
-  };
-      
-         </script>
+		 <script>
+		 import { mapActions } from "vuex";
+		 
+		 export default {
+		   data() {
+			 return {
+			   formData: {
+				 userName: "",
+				 userLast: "",
+				 userEmail: "",
+				 userPass: "",
+			   },
+			 };
+		   },
+		   computed: {
+			 regisMsg() {
+			   return this.$store.state.registrationMsg;
+			 },
+		   },
+		   methods: {
+			 async registerUser() {
+			   try {
+				 const response = await this.$store.dispatch('registerUser', this.formData); // Use formData
+				 console.log('Registration successful:', response);
+				 // Redirect or show success message as needed
+			   } catch (error) {
+				 console.error('Error registering user:', error);
+				 // Display error message to the user or handle the error appropriately
+			   }
+			 },
+		   },
+		 };
+		 </script>
+		 
          
          <style>
          /* Add your custom styles here */

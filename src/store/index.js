@@ -104,7 +104,9 @@ export default createStore({
     },
 
     addToCart(state, item) {
-      state.cartItems.push(item);
+      console.log('Adding to cart:', item);
+      const newItem = { ...item }; 
+      state.cartItems.push(newItem);
     },
 
     updateCart(state, { itemId, quantity }) {
@@ -119,17 +121,22 @@ export default createStore({
     clearCart(state) {
       state.cartItems = [];
     },
+    setSearchQuery(state, searchQuery) {
+      state.searchQuery = searchQuery;
+    },
   
   
   },
   actions: {
 
     ...mapActions(['fetchProducts', 'addProductToCart']),
-
+    search({ commit }, searchQuery) {
+      commit('setSearchQuery', searchQuery);
+    },
 
     async fetchProducts({ commit }) {
       try {
-        const response = await axios.get(`${baseUrl}product`);
+        const response = await axios.get(`${baseUrl}product/`);
         const products = response.data;
         commit('setProducts', products);
       } catch (error) {
@@ -139,7 +146,7 @@ export default createStore({
     },
     async getUsers(context) {
       try {
-        const resp = await fetch(`${baseUrl}user`, {
+        const resp = await fetch(`${baseUrl}user/users`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -167,7 +174,7 @@ async getUserDetails({ commit, state }, userID) {
     const userData = response.data;
     commit('setUserName', { firstName: userData.firstName, lastName: userData.lastName });
     commit('setUserEmail', userData.email);
-    // Commit mutations for other user details as needed
+   
 
     return userData; 
   } catch (error) {
@@ -186,11 +193,11 @@ async getUserByEmail({ commit }, userEmail) {
     if (!user) {
       throw new Error('User not found');
     }
-    commit('setUser', user); // Update the user state with fetched user data
+    commit('setUser', user); 
     return user;
   } catch (error) {
     console.error('Error fetching user by email:', error);
-    throw new Error('User not found'); // Throw specific error for user not found
+    throw new Error('User not found');
   }
 },
 
@@ -240,7 +247,7 @@ async getUserByEmail({ commit }, userEmail) {
     },
     async deletePerson(context, userID) {
       try {
-        const res = await fetch(`${baseUrl}user/${userID}`, {
+        const res = await fetch(`${baseUrl}user/user/${userID}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -260,14 +267,12 @@ async getUserByEmail({ commit }, userEmail) {
       try {
         const response = await axios.post(`${baseUrl}register`, userData);
         const { token, userId } = response.data;
-        
-        console.log('User ID after registration:', userID);
-        
-        commit('setToken', { token, userId });
-        commit('setUserId', userId); 
-    
+  
+        commit('setToken', token);
+        commit('setUserId', userId);
+  
         router.push({ name: 'home' });
-        
+  
         return response.data;
       } catch (error) {
         console.error('Registration error:', error);
@@ -300,10 +305,8 @@ async getUserByEmail({ commit }, userEmail) {
           throw new Error('Invalid token received');
         }
     
-        commit('setToken', token); 
+        commit('setToken', token);
         localStorage.setItem('token', token); 
-    
-     
     
         return true; 
       } catch (error) {
@@ -312,21 +315,22 @@ async getUserByEmail({ commit }, userEmail) {
         if (error.response && error.response.status === 401) {
           errorMessage = 'Invalid credentials. Please try again.';
         }
-        commit('setLoginError', errorMessage);
+        commit('setLoginError', errorMessage); 
         throw error;
       }
     },
     
+    
 
     
 
-    async updateProfile({ commit, state }, updatedUserData) {
+    async updateProfile({ commit, state }, updatedProData) {
       try {
-        const response = await axios.put(`${baseUrl}user/${state.user.userID}`, updatedProData, {
+        const response = await axios.patch(`${baseUrl}user/user/${state.user.userID}`, updatedProData, {
           headers: { Authorization: `Bearer ${state.token}` }
         });
         const updatedUser = response.data;
-        commit('updatePro', updatedPro);
+        commit('updatePro', updatedUser);
         console.log('User profile updated successfully:', updatedPro);
         return updatedUser;
       } catch (error) {
@@ -369,72 +373,15 @@ async getUserByEmail({ commit }, userEmail) {
     
     
     logout({ commit }) {
-      commit('clearAuthData');
-     
+      commit('clearAuthData'); // Clear user token and data
+      router.push({ name: 'login' }); // Redirect to login page
     },
 
   
-    // addToCart({ commit, state }, product) {
-    //   try {
-       
-    //     const productDetails = state.products.find(p => p.id === product.product_id);
-  
-    //     console.log('Product ID:', product.product_id);
-    //     console.log('State Products:', state.products);
-    //     console.log('Product Details:', productDetails);
-  
-    //     if (!productDetails) {
-    //       throw new Error('Product details not found');
-    //     }
-  
-    //     const cartItem = {
-    //       id: product.id,
-    //       name: productDetails.productName,
-    //       quantity: product.quantity,
-    //       price: productDetails.productPrice,
-    //       image: productDetails.productIMG,
-    //     };
-  
-    //     // Add the item to the cart
-    //     commit('addToCart', cartItem);
-    //     alert(`Added ${cartItem.name} to cart`);
-    //   } catch (error) {
-    //     console.error('Error adding product to cart:', error);
-    //     throw error;
-    //   }
-    // },
-
-// addToCart({ commit, state }, product) {
-//   try {
-//     console.log('Product ID to add to cart:', product.product_id); // Check product ID
-//     console.log('All products:', state.products); // Log all products
-
-//     const productDetails = state.products.find(p => p.id === product.product_id);
-
-//     console.log('Product details found:', productDetails); // Log product details
-//     if (!productDetails) {
-//       throw new Error('Product details not found');
-//     }
-
-//     const cartItem = {
-//       id: product.id,
-//       name: productDetails.productName,
-//       quantity: product.quantity,
-//       price: productDetails.productPrice,
-//       image: productDetails.productIMG,
-//     };
-
-//     // Add the item to the cart
-//     commit('addToCart', cartItem);
-//     alert(`Added ${cartItem.name} to cart`);
-//   } catch (error) {
-//     console.error('Error adding product to cart:', error);
-//     throw error;
-//   }
-// },
+    
 async addToCartAction({ commit, state }, item) {
   try {
-    const response = await axios.post(`${baseUrl}cart/add`, {
+    const response = await axios.post(`${baseUrl}cart/cart/add`, {
       user_id: state.user.userID,
       product_id: item.id,
       quantity: 1,
@@ -479,13 +426,11 @@ async addToCartAction({ commit, state }, item) {
           return [];
         }
         const searchQuery = state.searchQuery || '';
-
+    
         return state.products.filter(product =>
           product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           product.productDes.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    
-     
       },
   },
   modules: {},

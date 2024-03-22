@@ -25,6 +25,9 @@
     computed: {
       ...mapGetters(['cartItems']),
     },
+    mounted() {
+    console.log('Cart items:', this.cartItems);
+  },
     methods: {
       ...mapActions(['removeFromCart', 'clearCart']),
       checkout() {
